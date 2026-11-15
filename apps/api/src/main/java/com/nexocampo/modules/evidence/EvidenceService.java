@@ -33,6 +33,7 @@ public class EvidenceService {
         }
         Plot plot = plotRepository.findByIdAndFarmOwnerId(plotId, user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Talhão não encontrado"));
+        String storageKey = null;
         try {
             Evidence evidence = new Evidence();
             evidence.setPlot(plot);
@@ -41,10 +42,26 @@ public class EvidenceService {
             evidence.setOriginalName(file.getOriginalFilename() == null ? "arquivo" : file.getOriginalFilename());
             evidence.setContentType(file.getContentType() == null ? "application/octet-stream" : file.getContentType());
             evidence.setSizeBytes(file.getSize());
-            evidence.setStorageKey(fileStorage.save(file));
+            storageKey = fileStorage.save(file);
+            evidence.setStorageKey(storageKey);
             return toResponse(evidenceRepository.save(evidence));
         } catch (IOException exception) {
+            deleteAfterFailure(storageKey, exception);
             throw new IllegalStateException("Não foi possível armazenar o arquivo", exception);
+        } catch (RuntimeException exception) {
+            deleteAfterFailure(storageKey, exception);
+            throw exception;
+        }
+    }
+
+    private void deleteAfterFailure(String storageKey, Exception failure) {
+        if (storageKey == null) {
+            return;
+        }
+        try {
+            fileStorage.delete(storageKey);
+        } catch (IOException cleanupFailure) {
+            failure.addSuppressed(cleanupFailure);
         }
     }
 

@@ -25,7 +25,26 @@ public class LocalFileStorage implements FileStorage {
                 ? originalName.substring(originalName.lastIndexOf('.')).replaceAll("[^a-zA-Z0-9.]", "")
                 : "";
         String key = UUID.randomUUID() + extension;
-        file.transferTo(root.resolve(key));
+        Path target = resolveKey(key);
+        try {
+            file.transferTo(target);
+        } catch (IOException exception) {
+            Files.deleteIfExists(target);
+            throw exception;
+        }
         return key;
+    }
+
+    @Override
+    public void delete(String storageKey) throws IOException {
+        Files.deleteIfExists(resolveKey(storageKey));
+    }
+
+    private Path resolveKey(String storageKey) {
+        Path target = root.resolve(storageKey).normalize();
+        if (!target.startsWith(root)) {
+            throw new IllegalArgumentException("Chave de armazenamento inválida");
+        }
+        return target;
     }
 }
