@@ -14,6 +14,9 @@
    mvn spring-boot:run
    ```
 
+Antes de iniciar a API, configure `JWT_SECRET` com um valor aleatório de pelo
+menos 32 bytes. A aplicação não inicia sem essa variável.
+
 3. Acesse a documentação interativa:
 
    `http://localhost:8080/swagger-ui.html`
