@@ -21,7 +21,10 @@ public class Plot {
     @Column(nullable = false, length = 160)
     private String name;
 
+    @Column(length = 120)
     private String crop;
+
+    @Column(precision = 12, scale = 3)
     private BigDecimal areaHectares;
 
     @Enumerated(EnumType.STRING)

@@ -33,7 +33,10 @@ public class Activity {
     @Column(name = "activity_date", nullable = false)
     private LocalDate activityDate;
 
+    @Column(precision = 12, scale = 2)
     private BigDecimal cost;
+
+    @Column(length = 500)
     private String inputs;
 
     @Column(name = "created_at", nullable = false, updatable = false)

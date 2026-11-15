@@ -26,16 +26,16 @@ public class Evidence {
     @Column(nullable = false, length = 30)
     private EvidenceType type;
 
-    @Column(name = "original_name", nullable = false)
+    @Column(name = "original_name", nullable = false, length = 255)
     private String originalName;
 
-    @Column(name = "content_type", nullable = false)
+    @Column(name = "content_type", nullable = false, length = 120)
     private String contentType;
 
     @Column(name = "size_bytes", nullable = false)
     private long sizeBytes;
 
-    @Column(name = "storage_key", nullable = false, unique = true)
+    @Column(name = "storage_key", nullable = false, unique = true, length = 500)
     private String storageKey;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -21,14 +21,22 @@ public class Farm {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
+    @Column(length = 500)
     private String description;
+
+    @Column(length = 120)
     private String municipality;
+
+    @Column(length = 2)
     private String state;
 
     @Column(name = "total_area_hectares", precision = 12, scale = 3)
     private BigDecimal totalAreaHectares;
 
+    @Column(precision = 10, scale = 7)
     private BigDecimal latitude;
+
+    @Column(precision = 10, scale = 7)
     private BigDecimal longitude;
 
     @Column(name = "created_at", nullable = false, updatable = false)
