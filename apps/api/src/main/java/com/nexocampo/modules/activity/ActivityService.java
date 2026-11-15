@@ -26,7 +26,7 @@ public class ActivityService {
 
     @Transactional
     public ActivityResponse create(UUID plotId, ActivityRequest request, User responsible) {
-        Plot plot = plotRepository.findById(plotId)
+        Plot plot = plotRepository.findByIdAndFarmOwnerId(plotId, responsible.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Talhão não encontrado"));
         Activity activity = new Activity();
         activity.setPlot(plot);
@@ -40,7 +40,9 @@ public class ActivityService {
     }
 
     @Transactional(readOnly = true)
-    public List<ActivityResponse> findByPlot(UUID plotId) {
+    public List<ActivityResponse> findByPlot(UUID plotId, User owner) {
+        plotRepository.findByIdAndFarmOwnerId(plotId, owner.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Talhão não encontrado"));
         return activityRepository.findAllByPlotIdOrderByActivityDateDesc(plotId)
                 .stream().map(this::toResponse).toList();
     }

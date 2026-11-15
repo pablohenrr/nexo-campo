@@ -1,5 +1,6 @@
 package com.nexocampo.modules.farm;
 
+import com.nexocampo.modules.identity.User;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -23,8 +24,8 @@ public class PlotService {
     }
 
     @Transactional
-    public PlotResponse create(UUID farmId, PlotRequest request) {
-        Farm farm = farmRepository.findById(farmId)
+    public PlotResponse create(UUID farmId, PlotRequest request, User owner) {
+        Farm farm = farmRepository.findByIdAndOwnerId(farmId, owner.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Fazenda não encontrada"));
         Plot plot = new Plot();
         plot.setFarm(farm);
@@ -37,8 +38,9 @@ public class PlotService {
     }
 
     @Transactional(readOnly = true)
-    public List<PlotResponse> findByFarm(UUID farmId) {
-        return plotRepository.findAllByFarmIdOrderByName(farmId).stream().map(this::toResponse).toList();
+    public List<PlotResponse> findByFarm(UUID farmId, User owner) {
+        return plotRepository.findAllByFarmIdAndFarmOwnerIdOrderByName(farmId, owner.getId())
+                .stream().map(this::toResponse).toList();
     }
 
     private Polygon parsePolygon(String boundaryWkt) {

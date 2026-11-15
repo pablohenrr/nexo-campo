@@ -29,7 +29,9 @@ public class EvidenceController {
     }
 
     @GetMapping
-    public List<EvidenceService.EvidenceResponse> findByPlot(@PathVariable UUID plotId) {
-        return evidenceService.findByPlot(plotId);
+    public List<EvidenceService.EvidenceResponse> findByPlot(
+            @PathVariable UUID plotId,
+            @AuthenticationPrincipal User user) {
+        return evidenceService.findByPlot(plotId, user);
     }
 }

@@ -1,9 +1,11 @@
 package com.nexocampo.modules.farm;
 
+import com.nexocampo.modules.identity.User;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,12 +22,15 @@ public class PlotController {
     @ResponseStatus(HttpStatus.CREATED)
     public PlotService.PlotResponse create(
             @PathVariable UUID farmId,
-            @Valid @RequestBody PlotService.PlotRequest request) {
-        return plotService.create(farmId, request);
+            @Valid @RequestBody PlotService.PlotRequest request,
+            @AuthenticationPrincipal User user) {
+        return plotService.create(farmId, request, user);
     }
 
     @GetMapping
-    public List<PlotService.PlotResponse> findByFarm(@PathVariable UUID farmId) {
-        return plotService.findByFarm(farmId);
+    public List<PlotService.PlotResponse> findByFarm(
+            @PathVariable UUID farmId,
+            @AuthenticationPrincipal User user) {
+        return plotService.findByFarm(farmId, user);
     }
 }

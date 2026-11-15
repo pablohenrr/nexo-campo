@@ -31,7 +31,7 @@ public class EvidenceService {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("O arquivo não pode estar vazio");
         }
-        Plot plot = plotRepository.findById(plotId)
+        Plot plot = plotRepository.findByIdAndFarmOwnerId(plotId, user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Talhão não encontrado"));
         try {
             Evidence evidence = new Evidence();
@@ -49,7 +49,9 @@ public class EvidenceService {
     }
 
     @Transactional(readOnly = true)
-    public List<EvidenceResponse> findByPlot(UUID plotId) {
+    public List<EvidenceResponse> findByPlot(UUID plotId, User owner) {
+        plotRepository.findByIdAndFarmOwnerId(plotId, owner.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Talhão não encontrado"));
         return evidenceRepository.findAllByPlotIdOrderByCreatedAtDesc(plotId)
                 .stream().map(this::toResponse).toList();
     }

@@ -28,7 +28,9 @@ public class ActivityController {
     }
 
     @GetMapping
-    public List<ActivityService.ActivityResponse> findByPlot(@PathVariable UUID plotId) {
-        return activityService.findByPlot(plotId);
+    public List<ActivityService.ActivityResponse> findByPlot(
+            @PathVariable UUID plotId,
+            @AuthenticationPrincipal User user) {
+        return activityService.findByPlot(plotId, user);
     }
 }
