@@ -1,0 +1,6 @@
+# Segredos locais
+.env
+
+# Build e arquivos gerados pela API
+/apps/api/target/
+/apps/api/storage/
