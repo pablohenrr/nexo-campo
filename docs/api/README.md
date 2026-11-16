@@ -48,7 +48,7 @@ quando o perfil `dev` está ativo.
 | GET | `/api/talhoes/{talhaoId}/atividades` | JWT |
 | POST | `/api/talhoes/{talhaoId}/evidencias` | JWT |
 | GET | `/api/talhoes/{talhaoId}/evidencias` | JWT |
-| POST | `/api/webhooks` | Público com assinatura |
+| POST | `/api/webhooks/**` | Público; implementação no módulo de ingestão |
 
 O campo `limiteWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
 
@@ -58,13 +58,6 @@ assinatura do conteúdo. São aceitos JPEG, PNG, WebP, MP4, MP3, WAV, OGG, M4A e
 O armazenamento local usa `STORAGE_ROOT`; em produção, essa implementação deve ser
 substituída pelo adaptador do Supabase Storage.
 
-## Webhook
-
-O endpoint `POST /api/webhooks` recebe o payload bruto e exige o header:
-
-```http
-X-Hub-Signature-256: sha256=HASH_HEXADECIMAL
-```
-
-A assinatura é um HMAC-SHA256 do corpo bruto usando `WEBHOOK_SECRET`. Eventos
-válidos são armazenados para processamento posterior.
+O módulo de ingestão implementará o webhook oficial do WhatsApp Cloud API em
+`GET` e `POST /api/webhooks/whatsapp`. A rota já está liberada no Spring Security
+para que a assinatura HMAC-SHA256 seja validada sobre o corpo cru no controller.

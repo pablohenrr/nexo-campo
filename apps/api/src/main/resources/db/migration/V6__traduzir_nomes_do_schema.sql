@@ -3,7 +3,6 @@ ALTER TABLE farm RENAME TO fazenda;
 ALTER TABLE plot RENAME TO talhao;
 ALTER TABLE activity RENAME TO atividade;
 ALTER TABLE evidence RENAME TO evidencia;
-ALTER TABLE webhook_event RENAME TO evento_webhook;
 
 ALTER TABLE usuario RENAME COLUMN name TO nome;
 ALTER TABLE usuario RENAME COLUMN password_hash TO senha_hash;
@@ -37,7 +36,3 @@ ALTER TABLE evidencia RENAME COLUMN content_type TO tipo_conteudo;
 ALTER TABLE evidencia RENAME COLUMN size_bytes TO tamanho_bytes;
 ALTER TABLE evidencia RENAME COLUMN storage_key TO chave_armazenamento;
 ALTER TABLE evidencia RENAME COLUMN created_at TO criada_em;
-
-ALTER TABLE evento_webhook RENAME COLUMN payload TO carga_util;
-ALTER TABLE evento_webhook RENAME COLUMN signature TO assinatura;
-ALTER TABLE evento_webhook RENAME COLUMN received_at TO recebido_em;

@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.io.WKTReader;
@@ -43,16 +44,40 @@ public class PlotService {
                 .stream().map(this::toResponse).toList();
     }
 
-    private Polygon parsePolygon(String boundaryWkt) {
+    private Polygon parsePolygon(String limiteWkt) {
         try {
-            Geometry geometry = new WKTReader().read(boundaryWkt);
-            if (!(geometry instanceof Polygon polygon) || !geometry.isValid()) {
-                throw new IllegalArgumentException("boundaryWkt deve ser um polígono válido");
+            Geometry geometry = new WKTReader().read(limiteWkt);
+            if (!(geometry instanceof Polygon polygon)) {
+                throw new IllegalArgumentException("limiteWkt deve ser um polígono válido");
             }
+            if (polygon.isEmpty() || polygon.getNumPoints() == 0) {
+                throw new IllegalArgumentException("limiteWkt não pode ser vazio");
+            }
+            if (!polygon.isValid()) {
+                throw new IllegalArgumentException("limiteWkt deve ser um polígono válido");
+            }
+            validarCoordenadas(polygon);
             polygon.setSRID(4326);
             return polygon;
         } catch (Exception exception) {
-            throw new IllegalArgumentException("boundaryWkt deve estar em WKT e conter um polígono válido", exception);
+            if (exception instanceof IllegalArgumentException argumento) {
+                throw argumento;
+            }
+            throw new IllegalArgumentException("limiteWkt deve estar em WKT e conter um polígono válido", exception);
+        }
+    }
+
+    private void validarCoordenadas(Polygon polygon) {
+        for (Coordinate coordinate : polygon.getCoordinates()) {
+            if (!Double.isFinite(coordinate.getX())
+                    || !Double.isFinite(coordinate.getY())
+                    || coordinate.getX() < -180
+                    || coordinate.getX() > 180
+                    || coordinate.getY() < -90
+                    || coordinate.getY() > 90) {
+                throw new IllegalArgumentException(
+                        "limiteWkt contém coordenadas fora dos limites de longitude/latitude");
+            }
         }
     }
 
