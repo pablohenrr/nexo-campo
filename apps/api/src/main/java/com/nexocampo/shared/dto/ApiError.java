@@ -4,10 +4,10 @@ import java.time.OffsetDateTime;
 import java.util.List;
 
 public record ApiError(
-        OffsetDateTime timestamp,
+        OffsetDateTime dataHora,
         int status,
-        String error,
-        String message,
-        String path,
-        List<String> details) {
+        String erro,
+        String mensagem,
+        String caminho,
+        List<String> detalhes) {
 }

@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/fazendas/{farmId}/talhoes")
+@RequestMapping("/api/fazendas/{fazendaId}/talhoes")
 public class PlotController {
 
     private final PlotService plotService;
@@ -21,16 +21,16 @@ public class PlotController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public PlotService.PlotResponse create(
-            @PathVariable UUID farmId,
+            @PathVariable UUID fazendaId,
             @Valid @RequestBody PlotService.PlotRequest request,
             @AuthenticationPrincipal User user) {
-        return plotService.create(farmId, request, user);
+        return plotService.create(fazendaId, request, user);
     }
 
     @GetMapping
     public List<PlotService.PlotResponse> findByFarm(
-            @PathVariable UUID farmId,
+            @PathVariable UUID fazendaId,
             @AuthenticationPrincipal User user) {
-        return plotService.findByFarm(farmId, user);
+        return plotService.findByFarm(fazendaId, user);
     }
 }

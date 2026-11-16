@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.locationtech.jts.geom.Polygon;
 
 @Entity
-@Table(name = "plot")
+@Table(name = "talhao")
 public class Plot {
 
     @Id
@@ -15,23 +15,23 @@ public class Plot {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "farm_id", nullable = false)
+    @JoinColumn(name = "fazenda_id", nullable = false)
     private Farm farm;
 
-    @Column(nullable = false, length = 160)
+    @Column(name = "nome", nullable = false, length = 160)
     private String name;
 
-    @Column(length = 120)
+    @Column(name = "cultura", length = 120)
     private String crop;
 
-    @Column(precision = 12, scale = 3)
+    @Column(name = "area_hectares", precision = 12, scale = 3)
     private BigDecimal areaHectares;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(name = "situacao", nullable = false, length = 30)
     private PlotStatus status = PlotStatus.ATIVO;
 
-    @Column(columnDefinition = "geometry(Polygon,4326)")
+    @Column(name = "limite", columnDefinition = "geometry(Polygon,4326)")
     private Polygon boundary;
 
     @Column(name = "created_at", nullable = false, updatable = false)

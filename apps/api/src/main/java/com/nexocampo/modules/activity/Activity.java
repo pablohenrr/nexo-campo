@@ -9,7 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "activity")
+@Table(name = "atividade")
 public class Activity {
 
     @Id
@@ -17,26 +17,26 @@ public class Activity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "plot_id", nullable = false)
+    @JoinColumn(name = "talhao_id", nullable = false)
     private Plot plot;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "responsible_id", nullable = false)
+    @JoinColumn(name = "responsavel_id", nullable = false)
     private User responsible;
 
-    @Column(nullable = false, length = 80)
+    @Column(name = "tipo", nullable = false, length = 80)
     private String type;
 
-    @Column(length = 1000)
+    @Column(name = "descricao", length = 1000)
     private String description;
 
-    @Column(name = "activity_date", nullable = false)
+    @Column(name = "data_atividade", nullable = false)
     private LocalDate activityDate;
 
-    @Column(precision = 12, scale = 2)
+    @Column(name = "custo", precision = 12, scale = 2)
     private BigDecimal cost;
 
-    @Column(length = 500)
+    @Column(name = "insumos", length = 500)
     private String inputs;
 
     @Column(name = "created_at", nullable = false, updatable = false)

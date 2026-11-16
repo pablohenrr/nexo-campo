@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/talhoes/{plotId}/evidencias")
+@RequestMapping("/api/talhoes/{talhaoId}/evidencias")
 public class EvidenceController {
 
     private final EvidenceService evidenceService;
@@ -21,17 +21,17 @@ public class EvidenceController {
     @PostMapping(consumes = "multipart/form-data")
     @ResponseStatus(HttpStatus.CREATED)
     public EvidenceService.EvidenceResponse upload(
-            @PathVariable UUID plotId,
-            @RequestParam EvidenceType type,
-            @RequestPart MultipartFile file,
+            @PathVariable UUID talhaoId,
+            @RequestParam("tipo") EvidenceType tipo,
+            @RequestPart("arquivo") MultipartFile arquivo,
             @AuthenticationPrincipal User user) {
-        return evidenceService.upload(plotId, type, file, user);
+        return evidenceService.upload(talhaoId, tipo, arquivo, user);
     }
 
     @GetMapping
     public List<EvidenceService.EvidenceResponse> findByPlot(
-            @PathVariable UUID plotId,
+            @PathVariable UUID talhaoId,
             @AuthenticationPrincipal User user) {
-        return evidenceService.findByPlot(plotId, user);
+        return evidenceService.findByPlot(talhaoId, user);
     }
 }

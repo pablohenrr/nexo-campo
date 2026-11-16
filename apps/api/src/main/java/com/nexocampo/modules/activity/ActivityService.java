@@ -31,11 +31,11 @@ public class ActivityService {
         Activity activity = new Activity();
         activity.setPlot(plot);
         activity.setResponsible(responsible);
-        activity.setType(request.type());
-        activity.setDescription(request.description());
-        activity.setActivityDate(request.activityDate());
-        activity.setCost(request.cost());
-        activity.setInputs(request.inputs());
+        activity.setType(request.tipo());
+        activity.setDescription(request.descricao());
+        activity.setActivityDate(request.dataAtividade());
+        activity.setCost(request.custo());
+        activity.setInputs(request.insumos());
         return toResponse(activityRepository.save(activity));
     }
 
@@ -54,12 +54,12 @@ public class ActivityService {
     }
 
     public record ActivityRequest(
-            @NotBlank @Size(max = 80) String type,
-            @Size(max = 1000) String description,
-            @NotNull LocalDate activityDate,
-            BigDecimal cost,
-            @Size(max = 500) String inputs) {}
+            @NotBlank @Size(max = 80) String tipo,
+            @Size(max = 1000) String descricao,
+            @NotNull LocalDate dataAtividade,
+            BigDecimal custo,
+            @Size(max = 500) String insumos) {}
 
-    public record ActivityResponse(UUID id, UUID plotId, String type, String description, LocalDate activityDate,
-                                   BigDecimal cost, String inputs, UUID responsibleId) {}
+    public record ActivityResponse(UUID id, UUID talhaoId, String tipo, String descricao, LocalDate dataAtividade,
+                                   BigDecimal custo, String insumos, UUID responsavelId) {}
 }

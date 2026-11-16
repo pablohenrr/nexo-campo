@@ -1,4 +1,4 @@
-INSERT INTO app_user (id, name, email, password_hash, role)
+INSERT INTO usuario (id, nome, email, senha_hash, perfil)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'Usuário Demo',
@@ -8,8 +8,8 @@ VALUES (
 )
 ON CONFLICT (email) DO NOTHING;
 
-INSERT INTO farm (
-    id, name, owner_id, description, municipality, state, total_area_hectares, latitude, longitude
+INSERT INTO fazenda (
+    id, nome, proprietario_id, descricao, municipio, estado, area_total_hectares, latitude, longitude
 )
 VALUES (
     '00000000-0000-0000-0000-000000000010',
@@ -24,8 +24,8 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO plot (
-    id, farm_id, name, crop, area_hectares, status, boundary
+INSERT INTO talhao (
+    id, fazenda_id, nome, cultura, area_hectares, situacao, limite
 )
 VALUES (
     '00000000-0000-0000-0000-000000000020',
@@ -41,8 +41,8 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO activity (
-    id, plot_id, responsible_id, type, description, activity_date, cost, inputs
+INSERT INTO atividade (
+    id, talhao_id, responsavel_id, tipo, descricao, data_atividade, custo, insumos
 )
 VALUES (
     '00000000-0000-0000-0000-000000000030',

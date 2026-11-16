@@ -37,22 +37,34 @@ quando o perfil `dev` está ativo.
 
 | Método | Endpoint | Acesso |
 | --- | --- | --- |
-| GET | `/api/health` | Público |
-| POST | `/api/auth/cadastro` | Público |
-| POST | `/api/auth/login` | Público |
+| GET | `/api/saude` | Público |
+| POST | `/api/autenticacao/cadastro` | Público |
+| POST | `/api/autenticacao/login` | Público |
 | POST | `/api/fazendas` | JWT |
 | GET | `/api/fazendas` | JWT |
-| POST | `/api/fazendas/{farmId}/talhoes` | JWT |
-| GET | `/api/fazendas/{farmId}/talhoes` | JWT |
-| POST | `/api/talhoes/{plotId}/atividades` | JWT |
-| GET | `/api/talhoes/{plotId}/atividades` | JWT |
-| POST | `/api/talhoes/{plotId}/evidencias` | JWT |
-| GET | `/api/talhoes/{plotId}/evidencias` | JWT |
+| POST | `/api/fazendas/{fazendaId}/talhoes` | JWT |
+| GET | `/api/fazendas/{fazendaId}/talhoes` | JWT |
+| POST | `/api/talhoes/{talhaoId}/atividades` | JWT |
+| GET | `/api/talhoes/{talhaoId}/atividades` | JWT |
+| POST | `/api/talhoes/{talhaoId}/evidencias` | JWT |
+| GET | `/api/talhoes/{talhaoId}/evidencias` | JWT |
+| POST | `/api/webhooks` | Público com assinatura |
 
-O campo `boundaryWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
+O campo `limiteWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
 
-Uploads usam `multipart/form-data`, com os campos `type` (`FOTO`, `VIDEO`, `AUDIO` ou
-`DOCUMENTO`) e `file`. O limite configurado é de 2 GB por arquivo e a API valida a
+Uploads usam `multipart/form-data`, com os campos `tipo` (`FOTO`, `VIDEO`, `AUDIO` ou
+`DOCUMENTO`) e `arquivo`. O limite configurado é de 2 GB por arquivo e a API valida a
 assinatura do conteúdo. São aceitos JPEG, PNG, WebP, MP4, MP3, WAV, OGG, M4A e PDF.
 O armazenamento local usa `STORAGE_ROOT`; em produção, essa implementação deve ser
 substituída pelo adaptador do Supabase Storage.
+
+## Webhook
+
+O endpoint `POST /api/webhooks` recebe o payload bruto e exige o header:
+
+```http
+X-Hub-Signature-256: sha256=HASH_HEXADECIMAL
+```
+
+A assinatura é um HMAC-SHA256 do corpo bruto usando `WEBHOOK_SECRET`. Eventos
+válidos são armazenados para processamento posterior.

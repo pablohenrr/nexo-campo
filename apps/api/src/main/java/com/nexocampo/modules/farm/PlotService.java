@@ -29,11 +29,11 @@ public class PlotService {
                 .orElseThrow(() -> new IllegalArgumentException("Fazenda não encontrada"));
         Plot plot = new Plot();
         plot.setFarm(farm);
-        plot.setName(request.name());
-        plot.setCrop(request.crop());
+        plot.setName(request.nome());
+        plot.setCrop(request.cultura());
         plot.setAreaHectares(request.areaHectares());
-        plot.setStatus(request.status() == null ? PlotStatus.ATIVO : request.status());
-        plot.setBoundary(parsePolygon(request.boundaryWkt()));
+        plot.setStatus(request.situacao() == null ? PlotStatus.ATIVO : request.situacao());
+        plot.setBoundary(parsePolygon(request.limiteWkt()));
         return toResponse(plotRepository.save(plot));
     }
 
@@ -62,12 +62,12 @@ public class PlotService {
     }
 
     public record PlotRequest(
-            @NotBlank @Size(max = 160) String name,
-            @Size(max = 120) String crop,
+            @NotBlank @Size(max = 160) String nome,
+            @Size(max = 120) String cultura,
             BigDecimal areaHectares,
-            PlotStatus status,
-            @NotBlank String boundaryWkt) {}
+            PlotStatus situacao,
+            @NotBlank String limiteWkt) {}
 
-    public record PlotResponse(UUID id, UUID farmId, String name, String crop, BigDecimal areaHectares,
-                               PlotStatus status, String boundaryWkt) {}
+    public record PlotResponse(UUID id, UUID fazendaId, String nome, String cultura, BigDecimal areaHectares,
+                               PlotStatus situacao, String limiteWkt) {}
 }

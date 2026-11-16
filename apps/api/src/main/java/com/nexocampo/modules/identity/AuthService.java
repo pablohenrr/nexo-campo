@@ -26,26 +26,26 @@ public class AuthService {
             throw new IllegalArgumentException("E-mail já cadastrado");
         }
         User user = new User();
-        user.setName(request.name());
+        user.setName(request.nome());
         user.setEmail(request.email());
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
+        user.setPasswordHash(passwordEncoder.encode(request.senha()));
         userRepository.save(user);
         return new AuthResponse(jwtService.generateToken(user), user.getId(), user.getName(), user.getEmail(), user.getRole());
     }
 
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmailIgnoreCase(request.email())
-                .filter(candidate -> passwordEncoder.matches(request.password(), candidate.getPasswordHash()))
+                .filter(candidate -> passwordEncoder.matches(request.senha(), candidate.getPasswordHash()))
                 .orElseThrow(() -> new IllegalArgumentException("E-mail ou senha inválidos"));
         return new AuthResponse(jwtService.generateToken(user), user.getId(), user.getName(), user.getEmail(), user.getRole());
     }
 
     public record RegisterRequest(
-            @NotBlank String name,
+            @NotBlank String nome,
             @Email @NotBlank String email,
-            @NotBlank @Size(min = 8, max = 100) String password) {}
+            @NotBlank @Size(min = 8, max = 100) String senha) {}
 
-    public record LoginRequest(@Email @NotBlank String email, @NotBlank String password) {}
+    public record LoginRequest(@Email @NotBlank String email, @NotBlank String senha) {}
 
-    public record AuthResponse(String token, java.util.UUID userId, String name, String email, Role role) {}
+    public record AuthResponse(String token, java.util.UUID usuarioId, String nome, String email, Role perfil) {}
 }

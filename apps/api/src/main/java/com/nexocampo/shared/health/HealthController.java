@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/health")
+@RequestMapping("/api/saude")
 public class HealthController {
 
     @GetMapping
     public HealthResponse health() {
-        return new HealthResponse("UP", OffsetDateTime.now());
+        return new HealthResponse("ATIVO", OffsetDateTime.now());
     }
 
-    public record HealthResponse(String status, OffsetDateTime timestamp) {
+    public record HealthResponse(String situacao, OffsetDateTime dataHora) {
     }
 }

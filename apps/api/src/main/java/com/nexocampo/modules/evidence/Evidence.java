@@ -7,7 +7,7 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "evidence")
+@Table(name = "evidencia")
 public class Evidence {
 
     @Id
@@ -15,30 +15,30 @@ public class Evidence {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "plot_id", nullable = false)
+    @JoinColumn(name = "talhao_id", nullable = false)
     private Plot plot;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "uploaded_by", nullable = false)
+    @JoinColumn(name = "enviado_por", nullable = false)
     private User uploadedBy;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(name = "tipo", nullable = false, length = 30)
     private EvidenceType type;
 
-    @Column(name = "original_name", nullable = false, length = 255)
+    @Column(name = "nome_original", nullable = false, length = 255)
     private String originalName;
 
-    @Column(name = "content_type", nullable = false, length = 120)
+    @Column(name = "tipo_conteudo", nullable = false, length = 120)
     private String contentType;
 
-    @Column(name = "size_bytes", nullable = false)
+    @Column(name = "tamanho_bytes", nullable = false)
     private long sizeBytes;
 
-    @Column(name = "storage_key", nullable = false, unique = true, length = 500)
+    @Column(name = "chave_armazenamento", nullable = false, unique = true, length = 500)
     private String storageKey;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "criada_em", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @PrePersist

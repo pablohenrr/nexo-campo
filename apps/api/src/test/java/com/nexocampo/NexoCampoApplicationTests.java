@@ -20,9 +20,9 @@ class NexoCampoApplicationTests {
 
     @Test
     void healthEndpointReportsApplicationAsUp() throws Exception {
-        mockMvc.perform(get("/api/health"))
+        mockMvc.perform(get("/api/saude"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("UP"))
-                .andExpect(jsonPath("$.timestamp").isNotEmpty());
+                .andExpect(jsonPath("$.situacao").value("ATIVO"))
+                .andExpect(jsonPath("$.dataHora").isNotEmpty());
     }
 }

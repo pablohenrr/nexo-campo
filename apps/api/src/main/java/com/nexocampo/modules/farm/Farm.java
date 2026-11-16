@@ -7,30 +7,30 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "farm")
+@Table(name = "fazenda")
 public class Farm {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 160)
+    @Column(name = "nome", nullable = false, length = 160)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "owner_id", nullable = false)
+    @JoinColumn(name = "proprietario_id", nullable = false)
     private User owner;
 
-    @Column(length = 500)
+    @Column(name = "descricao", length = 500)
     private String description;
 
-    @Column(length = 120)
+    @Column(name = "municipio", length = 120)
     private String municipality;
 
-    @Column(length = 2)
+    @Column(name = "estado", length = 2)
     private String state;
 
-    @Column(name = "total_area_hectares", precision = 12, scale = 3)
+    @Column(name = "area_total_hectares", precision = 12, scale = 3)
     private BigDecimal totalAreaHectares;
 
     @Column(precision = 10, scale = 7)

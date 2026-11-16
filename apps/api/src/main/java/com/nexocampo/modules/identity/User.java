@@ -5,24 +5,24 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "app_user")
+@Table(name = "usuario")
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 120)
+    @Column(name = "nome", nullable = false, length = 120)
     private String name;
 
     @Column(nullable = false, unique = true, length = 180)
     private String email;
 
-    @Column(name = "password_hash", nullable = false)
+    @Column(name = "senha_hash", nullable = false)
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(name = "perfil", nullable = false, length = 30)
     private Role role = Role.PRODUTOR;
 
     @Column(name = "created_at", nullable = false, updatable = false)

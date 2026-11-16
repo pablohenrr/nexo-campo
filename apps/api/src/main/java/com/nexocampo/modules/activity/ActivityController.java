@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/talhoes/{plotId}/atividades")
+@RequestMapping("/api/talhoes/{talhaoId}/atividades")
 public class ActivityController {
 
     private final ActivityService activityService;
@@ -21,16 +21,16 @@ public class ActivityController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ActivityService.ActivityResponse create(
-            @PathVariable UUID plotId,
+            @PathVariable UUID talhaoId,
             @Valid @RequestBody ActivityService.ActivityRequest request,
             @AuthenticationPrincipal User user) {
-        return activityService.create(plotId, request, user);
+        return activityService.create(talhaoId, request, user);
     }
 
     @GetMapping
     public List<ActivityService.ActivityResponse> findByPlot(
-            @PathVariable UUID plotId,
+            @PathVariable UUID talhaoId,
             @AuthenticationPrincipal User user) {
-        return activityService.findByPlot(plotId, user);
+        return activityService.findByPlot(talhaoId, user);
     }
 }

@@ -33,6 +33,11 @@ public class LocalFileStorage implements FileStorage {
     }
 
     @Override
+    public byte[] read(String storageKey) throws IOException {
+        return Files.readAllBytes(resolveKey(storageKey));
+    }
+
+    @Override
     public void delete(String storageKey) throws IOException {
         Files.deleteIfExists(resolveKey(storageKey));
     }

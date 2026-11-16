@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList();
 
-        return buildResponse(HttpStatus.BAD_REQUEST, "Validation failed", request, details);
+        return buildResponse(HttpStatus.BAD_REQUEST, "Falha de validação", request, details);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         return buildResponse(
                 HttpStatus.BAD_REQUEST,
-                "Invalid request",
+                "Requisição inválida",
                 request,
                 List.of());
     }
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request) {
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unexpected internal error",
+                "Erro interno inesperado",
                 request,
                 List.of());
     }

@@ -165,7 +165,7 @@ public class EvidenceService {
     }
 
     public record EvidenceResponse(
-            UUID id, UUID plotId, EvidenceType type, String originalName,
-            String contentType, long sizeBytes, String storageKey,
-            java.time.OffsetDateTime createdAt) {}
+            UUID id, UUID talhaoId, EvidenceType tipo, String nomeOriginal,
+            String tipoConteudo, long tamanhoBytes, String chaveArmazenamento,
+            java.time.OffsetDateTime criadaEm) {}
 }
