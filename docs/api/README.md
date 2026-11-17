@@ -48,7 +48,14 @@ quando o perfil `dev` está ativo.
 | GET | `/api/talhoes/{talhaoId}/atividades` | JWT |
 | POST | `/api/talhoes/{talhaoId}/evidencias` | JWT |
 | GET | `/api/talhoes/{talhaoId}/evidencias` | JWT |
+| POST | `/api/talhoes/{talhaoId}/ocorrencias` | JWT |
+| GET | `/api/talhoes/{talhaoId}/ocorrencias` | JWT |
+| POST | `/api/ingestao/mensagens` | JWT |
+| GET | `/api/ingestao/mensagens` | JWT |
 | POST | `/api/webhooks/**` | Público; implementação no módulo de ingestão |
+
+A ingestão com IA (mensagens de texto, áudio e foto que viram atividades e ocorrências) está
+descrita em [ingestao-ia.md](ingestao-ia.md).
 
 O campo `limiteWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
 
