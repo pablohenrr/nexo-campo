@@ -46,10 +46,10 @@ public class FieldMessageService {
     static final String IGNORED_REPLY = "Recebi sua mensagem, mas não encontrei uma atividade ou ocorrência para registrar. "
             + "Exemplo: \"Apliquei 2 litros de glifosato no Talhão 01 hoje, gastei 800 reais\".";
     private static final Map<String, String> MISSING_FIELD_LABELS = Map.of(
-            "date", "data",
-            "inputs", "insumos",
-            "cost", "custo",
-            "description", "descrição");
+            "data", "data",
+            "insumos", "insumos",
+            "custo", "custo",
+            "descricao", "descrição");
 
     private final FieldMessageRepository fieldMessageRepository;
     private final PlotRepository plotRepository;
@@ -119,7 +119,7 @@ public class FieldMessageService {
             return save(record);
         }
 
-        MessageKind kind = interpretation.kind() == null ? MessageKind.OUTRO : interpretation.kind();
+        MessageKind kind = interpretation.tipo() == null ? MessageKind.OUTRO : interpretation.tipo();
         record.setKind(kind);
         record.setInterpretation(toJson(interpretation));
 
@@ -129,7 +129,7 @@ public class FieldMessageService {
             return save(record);
         }
 
-        Optional<Plot> plot = resolvePlot(interpretation.plotName(), fullText, plots);
+        Optional<Plot> plot = resolvePlot(interpretation.nomeTalhao(), fullText, plots);
         if (plot.isEmpty()) {
             record.setStatus(FieldMessageStatus.SEM_TALHAO);
             record.setReply(missingPlotReply(plots));
@@ -154,35 +154,35 @@ public class FieldMessageService {
         if (message.media() != null) {
             evidenceId = evidenceService.upload(plot.getId(), mediaType, new InMemoryMultipartFile(message.media()), sender).id();
         }
-        String fallbackDescription = firstNonBlank(interpretation.summary(), message.text(), record.getTranscript());
+        String fallbackDescription = firstNonBlank(interpretation.resumo(), message.text(), record.getTranscript());
 
         if (record.getKind() == MessageKind.ATIVIDADE) {
-            Interpretation.ActivityDraft draft = Optional.ofNullable(interpretation.activity())
+            Interpretation.ActivityDraft draft = Optional.ofNullable(interpretation.atividade())
                     .orElse(new Interpretation.ActivityDraft(null, null, null, null, null));
             ActivityService.ActivityResponse activity = activityService.create(plot.getId(), new ActivityService.ActivityRequest(
-                    Optional.ofNullable(draft.type()).orElse(ReportedActivityType.OUTRO).name(),
-                    truncate(firstNonBlank(draft.description(), fallbackDescription), 1000),
-                    Optional.ofNullable(draft.date()).orElse(today),
-                    draft.cost() != null && draft.cost().signum() >= 0 ? draft.cost() : null,
-                    truncate(draft.inputs(), 500)), sender);
+                    Optional.ofNullable(draft.tipo()).orElse(ReportedActivityType.OUTRO).name(),
+                    truncate(firstNonBlank(draft.descricao(), fallbackDescription), 1000),
+                    Optional.ofNullable(draft.data()).orElse(today),
+                    draft.custo() != null && draft.custo().signum() >= 0 ? draft.custo() : null,
+                    truncate(draft.insumos(), 500)), sender);
             record.setActivityId(activity.id());
             record.setReply(truncate("✅ Atividade registrada no " + plot.getName() + ": "
-                    + firstNonBlank(interpretation.summary(), draft.description(), "atividade")
-                    + missingFieldsHint(interpretation.missingFields()), 1000));
+                    + firstNonBlank(interpretation.resumo(), draft.descricao(), "atividade")
+                    + missingFieldsHint(interpretation.camposFaltantes()), 1000));
         } else {
-            Interpretation.OccurrenceDraft draft = Optional.ofNullable(interpretation.occurrence())
+            Interpretation.OccurrenceDraft draft = Optional.ofNullable(interpretation.ocorrencia())
                     .orElse(new Interpretation.OccurrenceDraft(null, null, null));
             OccurrenceService.OccurrenceResponse occurrence = occurrenceService.register(plot.getId(),
                     new OccurrenceService.OccurrenceRequest(
-                            Optional.ofNullable(draft.category()).orElse(OccurrenceCategory.OUTRO),
-                            Optional.ofNullable(draft.severity()).orElse(OccurrenceSeverity.MEDIA),
-                            truncate(firstNonBlank(draft.description(), fallbackDescription, "Ocorrência enviada pelo campo"), 1000),
+                            Optional.ofNullable(draft.categoria()).orElse(OccurrenceCategory.OUTRO),
+                            Optional.ofNullable(draft.severidade()).orElse(OccurrenceSeverity.MEDIA),
+                            truncate(firstNonBlank(draft.descricao(), fallbackDescription, "Ocorrência enviada pelo campo"), 1000),
                             today,
                             evidenceId),
                     sender);
             record.setOccurrenceId(occurrence.id());
             record.setReply(truncate("⚠️ Ocorrência registrada no " + plot.getName() + ": "
-                    + firstNonBlank(interpretation.summary(), draft.description(), "ocorrência"), 1000));
+                    + firstNonBlank(interpretation.resumo(), draft.descricao(), "ocorrência"), 1000));
         }
         record.setPlot(plot);
         record.setEvidenceId(evidenceId);
@@ -312,11 +312,11 @@ public class FieldMessageService {
     }
 
     /**
-     * @param reply texto de confirmação para devolver ao produtor (é o que o bot do WhatsApp responde)
+     * @param resposta texto de confirmação para devolver ao produtor (é o que o bot do WhatsApp responde)
      */
     public record FieldMessageResponse(
-            UUID id, MessageChannel channel, FieldMessageStatus status, MessageKind kind,
-            UUID plotId, String plotName, UUID activityId, UUID occurrenceId, UUID evidenceId,
-            String text, String transcript, String reply, Interpretation interpretation,
-            OffsetDateTime createdAt) {}
+            UUID id, MessageChannel canal, FieldMessageStatus situacao, MessageKind tipo,
+            UUID talhaoId, String nomeTalhao, UUID atividadeId, UUID ocorrenciaId, UUID evidenciaId,
+            String texto, String transcricao, String resposta, Interpretation interpretacao,
+            OffsetDateTime criadaEm) {}
 }

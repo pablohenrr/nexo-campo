@@ -46,25 +46,25 @@ class LlmFieldMessageInterpreterTest {
                 .andExpect(header(HttpHeaders.AUTHORIZATION, "Bearer chat-key"))
                 .andExpect(jsonPath("$.model").value("chat-model"))
                 .andExpect(jsonPath("$.response_format.type").value("json_schema"))
-                .andExpect(jsonPath("$.response_format.json_schema.schema.properties.kind.enum[1]").value("OCORRENCIA"))
+                .andExpect(jsonPath("$.response_format.json_schema.schema.properties.tipo.enum[1]").value("OCORRENCIA"))
                 .andExpect(jsonPath("$.messages[0].content", containsString("- Talhão 04 - Milho Safrinha")))
                 .andExpect(jsonPath("$.messages[0].content", containsString("Data de hoje: 2026-11-16")))
                 .andExpect(jsonPath("$.messages[1].content[0].text", containsString("olha o milho")))
                 .andExpect(jsonPath("$.messages[1].content[1].image_url.url", startsWith("data:image/jpeg;base64,AQID")))
                 .andRespond(withSuccess(chatResponse("""
-                        {"kind":"OCORRENCIA","plotName":"Talhão 04 - Milho Safrinha",
-                         "summary":"Manchas nas folhas do milho",
-                         "occurrence":{"category":"DOENCA","severity":"MEDIA","description":"Possível ferrugem"},
-                         "missingFields":[],"confidence":0.8}
+                        {"tipo":"OCORRENCIA","nomeTalhao":"Talhão 04 - Milho Safrinha",
+                         "resumo":"Manchas nas folhas do milho",
+                         "ocorrencia":{"categoria":"DOENCA","severidade":"MEDIA","descricao":"Possível ferrugem"},
+                         "camposFaltantes":[],"confianca":0.8}
                         """), MediaType.APPLICATION_JSON));
 
         Interpretation result = interpreter.interpret(new InterpretationRequest("olha o milho",
                 new IncomingMedia(new byte[] {1, 2, 3}, "image/jpeg", "foto.jpg"), PLOTS, TODAY));
 
         server.verify();
-        assertThat(result.kind()).isEqualTo(MessageKind.OCORRENCIA);
-        assertThat(result.plotName()).isEqualTo("Talhão 04 - Milho Safrinha");
-        assertThat(result.occurrence().category()).isEqualTo(OccurrenceCategory.DOENCA);
+        assertThat(result.tipo()).isEqualTo(MessageKind.OCORRENCIA);
+        assertThat(result.nomeTalhao()).isEqualTo("Talhão 04 - Milho Safrinha");
+        assertThat(result.ocorrencia().categoria()).isEqualTo(OccurrenceCategory.DOENCA);
     }
 
     @Test
@@ -73,15 +73,15 @@ class LlmFieldMessageInterpreterTest {
         server.expect(requestTo("https://chat.test/v1/chat/completions"))
                 .andRespond(withSuccess(chatResponse("""
                         ```json
-                        {"kind":"ATIVIDADE","summary":"Roçagem","activity":{"type":"ROCAGEM","date":"2026-11-15",
-                         "description":"Roçagem da beira"},"missingFields":["cost"],"confidence":0.6}
+                        {"tipo":"ATIVIDADE","resumo":"Roçagem","atividade":{"tipo":"ROCAGEM","data":"2026-11-15",
+                         "descricao":"Roçagem da beira"},"camposFaltantes":["custo"],"confianca":0.6}
                         ```"""), MediaType.APPLICATION_JSON));
 
         Interpretation result = interpreter.interpret(new InterpretationRequest("rocei ontem", null, PLOTS, TODAY));
 
-        assertThat(result.activity().type()).isEqualTo(ReportedActivityType.OUTRO);
-        assertThat(result.activity().date()).isEqualTo(LocalDate.of(2026, 11, 15));
-        assertThat(result.missingFields()).containsExactly("cost");
+        assertThat(result.atividade().tipo()).isEqualTo(ReportedActivityType.OUTRO);
+        assertThat(result.atividade().data()).isEqualTo(LocalDate.of(2026, 11, 15));
+        assertThat(result.camposFaltantes()).containsExactly("custo");
     }
 
     @Test
@@ -90,10 +90,10 @@ class LlmFieldMessageInterpreterTest {
         server.expect(requestTo("https://chat.test/v1/chat/completions"))
                 .andExpect(jsonPath("$.response_format.type").value("json_object"))
                 .andExpect(jsonPath("$.messages[0].content", containsString("JSON Schema")))
-                .andRespond(withSuccess(chatResponse("{\"kind\":\"OUTRO\",\"summary\":\"oi\",\"missingFields\":[],\"confidence\":1}"),
+                .andRespond(withSuccess(chatResponse("{\"tipo\":\"OUTRO\",\"resumo\":\"oi\",\"camposFaltantes\":[],\"confianca\":1}"),
                         MediaType.APPLICATION_JSON));
 
-        assertThat(interpreter.interpret(new InterpretationRequest("oi", null, PLOTS, TODAY)).kind())
+        assertThat(interpreter.interpret(new InterpretationRequest("oi", null, PLOTS, TODAY)).tipo())
                 .isEqualTo(MessageKind.OUTRO);
     }
 
@@ -114,13 +114,13 @@ class LlmFieldMessageInterpreterTest {
         server.expect(requestTo("https://chat.test/v1/chat/completions"))
                 .andRespond(withStatus(HttpStatus.SERVICE_UNAVAILABLE).body("{\"error\":\"high demand\"}"));
         server.expect(requestTo("https://chat.test/v1/chat/completions"))
-                .andRespond(withSuccess(chatResponse("{\"kind\":\"OUTRO\",\"summary\":\"oi\",\"missingFields\":[],\"confidence\":1}"),
+                .andRespond(withSuccess(chatResponse("{\"tipo\":\"OUTRO\",\"resumo\":\"oi\",\"camposFaltantes\":[],\"confianca\":1}"),
                         MediaType.APPLICATION_JSON));
 
         Interpretation result = interpreter.interpret(new InterpretationRequest("oi", null, PLOTS, TODAY));
 
         server.verify();
-        assertThat(result.kind()).isEqualTo(MessageKind.OUTRO);
+        assertThat(result.tipo()).isEqualTo(MessageKind.OUTRO);
     }
 
     @Test

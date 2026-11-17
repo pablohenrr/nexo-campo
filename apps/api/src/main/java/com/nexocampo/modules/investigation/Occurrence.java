@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /** Problema observado em um talhão (praga, doença, dano por clima...), ponto de partida das investigações. */
 @Entity
-@Table(name = "occurrence")
+@Table(name = "ocorrencia")
 public class Occurrence {
 
     @Id
@@ -17,38 +17,38 @@ public class Occurrence {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "plot_id", nullable = false)
+    @JoinColumn(name = "talhao_id", nullable = false)
     private Plot plot;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "reported_by", nullable = false)
+    @JoinColumn(name = "responsavel_id", nullable = false)
     private User reportedBy;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 40)
+    @Column(name = "categoria", nullable = false, length = 40)
     private OccurrenceCategory category;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "severidade", nullable = false, length = 20)
     private OccurrenceSeverity severity;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "situacao", nullable = false, length = 20)
     private OccurrenceStatus status = OccurrenceStatus.ABERTA;
 
-    @Column(nullable = false, length = 1000)
+    @Column(name = "descricao", nullable = false, length = 1000)
     private String description;
 
-    @Column(name = "observed_at", nullable = false)
+    @Column(name = "data_observacao", nullable = false)
     private LocalDate observedAt;
 
-    @Column(name = "evidence_id")
+    @Column(name = "evidencia_id")
     private UUID evidenceId;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "criada_em", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "atualizada_em", nullable = false)
     private OffsetDateTime updatedAt;
 
     @PrePersist

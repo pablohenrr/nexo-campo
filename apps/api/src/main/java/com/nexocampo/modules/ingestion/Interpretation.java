@@ -10,30 +10,30 @@ import java.util.List;
  * O que a IA extraiu de uma mensagem de campo. Espelha
  * {@code resources/ai/field-message-interpretation.schema.json}; mude os dois juntos.
  *
- * @param plotName    nome exato de um talhão do produtor, ou {@code null} se não deu para identificar
- * @param activity    preenchido só quando {@code kind} é {@link MessageKind#ATIVIDADE}
- * @param occurrence  preenchido só quando {@code kind} é {@link MessageKind#OCORRENCIA}
- * @param missingFields campos importantes que o produtor não informou (ex.: {@code cost})
- * @param confidence  de 0 a 1
+ * @param nomeTalhao      nome exato de um talhão do produtor, ou {@code null} se não deu para identificar
+ * @param atividade       preenchido só quando {@code tipo} é {@link MessageKind#ATIVIDADE}
+ * @param ocorrencia      preenchido só quando {@code tipo} é {@link MessageKind#OCORRENCIA}
+ * @param camposFaltantes campos importantes que o produtor não informou (ex.: {@code custo})
+ * @param confianca       de 0 a 1
  */
 public record Interpretation(
-        MessageKind kind,
-        String plotName,
-        String summary,
-        ActivityDraft activity,
-        OccurrenceDraft occurrence,
-        List<String> missingFields,
-        Double confidence) {
+        MessageKind tipo,
+        String nomeTalhao,
+        String resumo,
+        ActivityDraft atividade,
+        OccurrenceDraft ocorrencia,
+        List<String> camposFaltantes,
+        Double confianca) {
 
     public record ActivityDraft(
-            ReportedActivityType type,
-            LocalDate date,
-            String description,
-            String inputs,
-            BigDecimal cost) {}
+            ReportedActivityType tipo,
+            LocalDate data,
+            String descricao,
+            String insumos,
+            BigDecimal custo) {}
 
     public record OccurrenceDraft(
-            OccurrenceCategory category,
-            OccurrenceSeverity severity,
-            String description) {}
+            OccurrenceCategory categoria,
+            OccurrenceSeverity severidade,
+            String descricao) {}
 }

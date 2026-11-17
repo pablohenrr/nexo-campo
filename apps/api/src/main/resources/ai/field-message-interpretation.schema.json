@@ -1,75 +1,75 @@
 {
   "type": "object",
   "properties": {
-    "kind": {
+    "tipo": {
       "type": "string",
       "enum": ["ATIVIDADE", "OCORRENCIA", "OUTRO"],
       "description": "ATIVIDADE = trabalho feito no talhão; OCORRENCIA = problema observado; OUTRO = qualquer outra coisa"
     },
-    "plotName": {
+    "nomeTalhao": {
       "type": "string",
       "description": "Nome exato de um dos talhões do produtor. Omita se a mensagem não indicar o talhão com segurança."
     },
-    "summary": {
+    "resumo": {
       "type": "string",
       "description": "Frase curta em português confirmando o que foi entendido"
     },
-    "activity": {
+    "atividade": {
       "type": "object",
-      "description": "Somente quando kind = ATIVIDADE",
+      "description": "Somente quando tipo = ATIVIDADE",
       "properties": {
-        "type": {
+        "tipo": {
           "type": "string",
           "enum": ["PLANTIO", "ADUBACAO", "PULVERIZACAO", "IRRIGACAO", "CAPINA", "COLHEITA", "MONITORAMENTO", "MANUTENCAO", "OUTRO"]
         },
-        "date": {
+        "data": {
           "type": "string",
           "description": "Data da atividade no formato AAAA-MM-DD"
         },
-        "description": {
+        "descricao": {
           "type": "string"
         },
-        "inputs": {
+        "insumos": {
           "type": "string",
           "description": "Produtos e quantidades citados, separados por ponto e vírgula"
         },
-        "cost": {
+        "custo": {
           "type": "number",
           "description": "Custo total em reais"
         }
       },
-      "required": ["type", "date", "description"]
+      "required": ["tipo", "data", "descricao"]
     },
-    "occurrence": {
+    "ocorrencia": {
       "type": "object",
-      "description": "Somente quando kind = OCORRENCIA",
+      "description": "Somente quando tipo = OCORRENCIA",
       "properties": {
-        "category": {
+        "categoria": {
           "type": "string",
           "enum": ["PRAGA", "DOENCA", "PLANTA_DANINHA", "DEFICIENCIA_NUTRICIONAL", "CLIMA", "OUTRO"]
         },
-        "severity": {
+        "severidade": {
           "type": "string",
           "enum": ["BAIXA", "MEDIA", "ALTA"]
         },
-        "description": {
+        "descricao": {
           "type": "string",
           "description": "O que foi observado e a hipótese mais provável, deixando claro que é suspeita"
         }
       },
-      "required": ["category", "severity", "description"]
+      "required": ["categoria", "severidade", "descricao"]
     },
-    "missingFields": {
+    "camposFaltantes": {
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["plotName", "date", "inputs", "cost", "description"]
+        "enum": ["nomeTalhao", "data", "insumos", "custo", "descricao"]
       }
     },
-    "confidence": {
+    "confianca": {
       "type": "number",
       "description": "Segurança da interpretação, de 0 a 1"
     }
   },
-  "required": ["kind", "summary", "missingFields", "confidence"]
+  "required": ["tipo", "resumo", "camposFaltantes", "confianca"]
 }

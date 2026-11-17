@@ -42,11 +42,11 @@ class FieldMessageControllerTest {
                 "⚠️ Ocorrência registrada", null, OffsetDateTime.now()));
 
         mockMvc.perform(multipart("/api/ingestao/mensagens")
-                        .file(new MockMultipartFile("file", "foto.jpg", "image/jpeg", new byte[] {1, 2, 3}))
-                        .param("text", "olha isso"))
+                        .file(new MockMultipartFile("arquivo", "foto.jpg", "image/jpeg", new byte[] {1, 2, 3}))
+                        .param("texto", "olha isso"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.status").value("REGISTRADA"))
-                .andExpect(jsonPath("$.plotName").value("Talhão 01"));
+                .andExpect(jsonPath("$.situacao").value("REGISTRADA"))
+                .andExpect(jsonPath("$.nomeTalhao").value("Talhão 01"));
 
         ArgumentCaptor<IncomingMessage> message = ArgumentCaptor.forClass(IncomingMessage.class);
         verify(fieldMessageService).receive(any(), message.capture());
@@ -63,6 +63,6 @@ class FieldMessageControllerTest {
 
         mockMvc.perform(multipart("/api/ingestao/mensagens"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Envie um texto, um áudio ou uma foto"));
+                .andExpect(jsonPath("$.mensagem").value("Envie um texto, um áudio ou uma foto"));
     }
 }

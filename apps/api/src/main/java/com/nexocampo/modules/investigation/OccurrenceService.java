@@ -34,17 +34,17 @@ public class OccurrenceService {
     public OccurrenceResponse register(UUID plotId, OccurrenceRequest request, User reporter) {
         Plot plot = plotRepository.findByIdAndFarmOwnerId(plotId, reporter.getId())
                 .orElseThrow(() -> new IllegalArgumentException("Talhão não encontrado"));
-        if (request.evidenceId() != null) {
-            requireEvidenceFromPlot(request.evidenceId(), plotId);
+        if (request.evidenciaId() != null) {
+            requireEvidenceFromPlot(request.evidenciaId(), plotId);
         }
         Occurrence occurrence = new Occurrence();
         occurrence.setPlot(plot);
         occurrence.setReportedBy(reporter);
-        occurrence.setCategory(request.category());
-        occurrence.setSeverity(request.severity());
-        occurrence.setDescription(request.description());
-        occurrence.setObservedAt(request.observedAt());
-        occurrence.setEvidenceId(request.evidenceId());
+        occurrence.setCategory(request.categoria());
+        occurrence.setSeverity(request.severidade());
+        occurrence.setDescription(request.descricao());
+        occurrence.setObservedAt(request.dataObservacao());
+        occurrence.setEvidenceId(request.evidenciaId());
         return toResponse(occurrenceRepository.save(occurrence));
     }
 
@@ -70,13 +70,14 @@ public class OccurrenceService {
     }
 
     public record OccurrenceRequest(
-            @NotNull OccurrenceCategory category,
-            @NotNull OccurrenceSeverity severity,
-            @NotBlank @Size(max = 1000) String description,
-            @NotNull LocalDate observedAt,
-            UUID evidenceId) {}
+            @NotNull OccurrenceCategory categoria,
+            @NotNull OccurrenceSeverity severidade,
+            @NotBlank @Size(max = 1000) String descricao,
+            @NotNull LocalDate dataObservacao,
+            UUID evidenciaId) {}
 
-    public record OccurrenceResponse(UUID id, UUID plotId, OccurrenceCategory category, OccurrenceSeverity severity,
-                                     OccurrenceStatus status, String description, LocalDate observedAt,
-                                     UUID evidenceId, UUID reportedById, OffsetDateTime createdAt) {}
+    public record OccurrenceResponse(UUID id, UUID talhaoId, OccurrenceCategory categoria,
+                                     OccurrenceSeverity severidade, OccurrenceStatus situacao, String descricao,
+                                     LocalDate dataObservacao, UUID evidenciaId, UUID responsavelId,
+                                     OffsetDateTime criadaEm) {}
 }

@@ -11,7 +11,7 @@ import org.hibernate.type.SqlTypes;
 
 /** Mensagem recebida do campo e o que foi feito com ela. Serve de histórico e para ignorar reenvios. */
 @Entity
-@Table(name = "field_message")
+@Table(name = "mensagem_campo")
 public class FieldMessage {
 
     @Id
@@ -19,59 +19,59 @@ public class FieldMessage {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "sender_id", nullable = false)
+    @JoinColumn(name = "remetente_id", nullable = false)
     private User sender;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(name = "canal", nullable = false, length = 20)
     private MessageChannel channel;
 
-    @Column(name = "external_id", length = 120)
+    @Column(name = "id_externo", length = 120)
     private String externalId;
 
-    @Column(length = 4000)
+    @Column(name = "texto", length = 4000)
     private String text;
 
-    @Column(length = 4000)
+    @Column(name = "transcricao", length = 4000)
     private String transcript;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "media_type", length = 30)
+    @Column(name = "tipo_midia", length = 30)
     private EvidenceType mediaType;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(name = "situacao", nullable = false, length = 30)
     private FieldMessageStatus status;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 30)
+    @Column(name = "tipo", length = 30)
     private MessageKind kind;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plot_id")
+    @JoinColumn(name = "talhao_id")
     private Plot plot;
 
-    @Column(name = "evidence_id")
+    @Column(name = "evidencia_id")
     private UUID evidenceId;
 
-    @Column(name = "activity_id")
+    @Column(name = "atividade_id")
     private UUID activityId;
 
-    @Column(name = "occurrence_id")
+    @Column(name = "ocorrencia_id")
     private UUID occurrenceId;
 
     /** Resposta bruta da IA, guardada como veio para auditoria e reprocessamento. */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(name = "interpretacao", columnDefinition = "jsonb")
     private String interpretation;
 
-    @Column(length = 1000)
+    @Column(name = "resposta", length = 1000)
     private String reply;
 
-    @Column(name = "error_message", length = 500)
+    @Column(name = "mensagem_erro", length = 500)
     private String errorMessage;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "criada_em", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 
     @PrePersist

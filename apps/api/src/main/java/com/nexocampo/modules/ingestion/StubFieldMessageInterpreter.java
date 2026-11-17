@@ -52,7 +52,7 @@ public class StubFieldMessageInterpreter implements FieldMessageInterpreter {
         Optional<String> plotName = PlotMatcher.find(request.text(), request.plotNames());
         List<String> missing = new ArrayList<>();
         if (plotName.isEmpty()) {
-            missing.add("plotName");
+            missing.add("nomeTalhao");
         }
 
         Optional<OccurrenceCategory> occurrenceCategory = firstMatch(text, OCCURRENCE_KEYWORDS);
@@ -70,9 +70,9 @@ public class StubFieldMessageInterpreter implements FieldMessageInterpreter {
         if (activityType.isPresent()) {
             BigDecimal cost = cost(text);
             if (cost == null) {
-                missing.add("cost");
+                missing.add("custo");
             }
-            missing.add("inputs");
+            missing.add("insumos");
             return new Interpretation(MessageKind.ATIVIDADE, plotName.orElse(null),
                     TEST_MODE + "Atividade de " + activityType.get().name().toLowerCase(),
                     new Interpretation.ActivityDraft(activityType.get(), request.today(), request.text().strip(), null, cost),

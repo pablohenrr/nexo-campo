@@ -21,15 +21,15 @@ Todos exigem `Authorization: Bearer TOKEN`.
 
 | Método | Endpoint | O que faz |
 | --- | --- | --- |
-| POST | `/api/ingestao/mensagens` | Envia uma mensagem (`multipart/form-data`: `text` e/ou `file`) |
+| POST | `/api/ingestao/mensagens` | Envia uma mensagem (`multipart/form-data`: `texto` e/ou `arquivo`) |
 | GET | `/api/ingestao/mensagens` | Últimas 50 mensagens do usuário, com o resultado de cada uma |
-| POST | `/api/talhoes/{plotId}/ocorrencias` | Registra uma ocorrência manualmente |
-| GET | `/api/talhoes/{plotId}/ocorrencias` | Ocorrências do talhão, das mais recentes para as mais antigas |
+| POST | `/api/talhoes/{talhaoId}/ocorrencias` | Registra uma ocorrência manualmente |
+| GET | `/api/talhoes/{talhaoId}/ocorrencias` | Ocorrências do talhão, das mais recentes para as mais antigas |
 
 ### `POST /api/ingestao/mensagens`
 
-- `text` (opcional): texto da mensagem ou legenda da foto.
-- `file` (opcional): áudio (`audio/*`) ou foto (`image/*`), até 25 MB.
+- `texto` (opcional): texto da mensagem ou legenda da foto.
+- `arquivo` (opcional): áudio (`audio/*`) ou foto (`image/*`), até 25 MB.
 - Pelo menos um dos dois é obrigatório. Outros tipos de arquivo voltam `400`.
 
 Resposta `201`:
@@ -37,23 +37,23 @@ Resposta `201`:
 ```json
 {
   "id": "6f1c...",
-  "channel": "APP",
-  "status": "REGISTRADA",
-  "kind": "ATIVIDADE",
-  "plotId": "a3e9...",
-  "plotName": "Talhão 04 - Milho Safrinha",
-  "activityId": "01d2...",
-  "occurrenceId": null,
-  "evidenceId": "7af0...",
-  "text": null,
-  "transcript": "Hoje apliquei 2 litros de glifosato no talhão 4, gastei 800 reais.",
-  "reply": "✅ Atividade registrada no Talhão 04 - Milho Safrinha: Pulverização de glifosato",
-  "interpretation": { "...": "ver contrato abaixo" },
-  "createdAt": "2026-11-16T18:09:40Z"
+  "canal": "APP",
+  "situacao": "REGISTRADA",
+  "tipo": "ATIVIDADE",
+  "talhaoId": "a3e9...",
+  "nomeTalhao": "Talhão 04 - Milho Safrinha",
+  "atividadeId": "01d2...",
+  "ocorrenciaId": null,
+  "evidenciaId": "7af0...",
+  "texto": null,
+  "transcricao": "Hoje apliquei 2 litros de glifosato no talhão 4, gastei 800 reais.",
+  "resposta": "✅ Atividade registrada no Talhão 04 - Milho Safrinha: Pulverização de glifosato",
+  "interpretacao": { "...": "ver contrato abaixo" },
+  "criadaEm": "2026-11-16T18:09:40Z"
 }
 ```
 
-| `status` | Significado | O que aparece em `reply` |
+| `situacao` | Significado | O que aparece em `resposta` |
 | --- | --- | --- |
 | `REGISTRADA` | Virou atividade ou ocorrência | Confirmação do que foi registrado e, se faltou algo, o que completar |
 | `SEM_TALHAO` | Entendida, mas sem talhão identificado. Nada foi gravado além do histórico | Lista dos talhões para o produtor reenviar citando um |
@@ -64,6 +64,21 @@ Regras para identificar o talhão: vale o nome escolhido pela IA; se ela não es
 procura o nome ou o número ("talhão 4") no texto; se o produtor tem um único talhão e nenhum foi
 citado, usa esse. Se a IA citar um talhão que não existe, nada é registrado.
 
+### `POST /api/talhoes/{talhaoId}/ocorrencias`
+
+```json
+{
+  "categoria": "DOENCA",
+  "severidade": "MEDIA",
+  "descricao": "Manchas alaranjadas nas folhas, possível ferrugem",
+  "dataObservacao": "2026-11-16",
+  "evidenciaId": null
+}
+```
+
+A resposta repete esses campos e acrescenta `id`, `talhaoId`, `situacao` (`ABERTA` ou `RESOLVIDA`),
+`responsavelId` e `criadaEm`.
+
 ## Contrato da IA
 
 A IA devolve o JSON abaixo, definido em
@@ -73,33 +88,33 @@ e espelhado no record `Interpretation`. **Mude os dois juntos.** O prompt fica e
 
 ```json
 {
-  "kind": "ATIVIDADE",
-  "plotName": "Talhão 04 - Milho Safrinha",
-  "summary": "Pulverização de glifosato no Talhão 04",
-  "activity": {
-    "type": "PULVERIZACAO",
-    "date": "2026-11-16",
-    "description": "Aplicação de glifosato",
-    "inputs": "Glifosato 2 L",
-    "cost": 800
+  "tipo": "ATIVIDADE",
+  "nomeTalhao": "Talhão 04 - Milho Safrinha",
+  "resumo": "Pulverização com 2 L de glifosato hoje, custo de R$ 800",
+  "atividade": {
+    "tipo": "PULVERIZACAO",
+    "data": "2026-11-16",
+    "descricao": "Aplicação de glifosato",
+    "insumos": "Glifosato 2 L",
+    "custo": 800
   },
-  "occurrence": null,
-  "missingFields": [],
-  "confidence": 0.9
+  "ocorrencia": null,
+  "camposFaltantes": [],
+  "confianca": 0.9
 }
 ```
 
 | Campo | Valores |
 | --- | --- |
-| `kind` | `ATIVIDADE`, `OCORRENCIA`, `OUTRO` |
-| `activity.type` | `PLANTIO`, `ADUBACAO`, `PULVERIZACAO`, `IRRIGACAO`, `CAPINA`, `COLHEITA`, `MONITORAMENTO`, `MANUTENCAO`, `OUTRO` |
-| `occurrence.category` | `PRAGA`, `DOENCA`, `PLANTA_DANINHA`, `DEFICIENCIA_NUTRICIONAL`, `CLIMA`, `OUTRO` |
-| `occurrence.severity` | `BAIXA`, `MEDIA`, `ALTA` |
-| `missingFields` | `plotName`, `date`, `inputs`, `cost`, `description` |
+| `tipo` | `ATIVIDADE`, `OCORRENCIA`, `OUTRO` |
+| `atividade.tipo` | `PLANTIO`, `ADUBACAO`, `PULVERIZACAO`, `IRRIGACAO`, `CAPINA`, `COLHEITA`, `MONITORAMENTO`, `MANUTENCAO`, `OUTRO` |
+| `ocorrencia.categoria` | `PRAGA`, `DOENCA`, `PLANTA_DANINHA`, `DEFICIENCIA_NUTRICIONAL`, `CLIMA`, `OUTRO` |
+| `ocorrencia.severidade` | `BAIXA`, `MEDIA`, `ALTA` |
+| `camposFaltantes` | `nomeTalhao`, `data`, `insumos`, `custo`, `descricao` |
 
 Valores fora dessas listas viram `OUTRO` (ou ficam nulos) em vez de derrubar a mensagem. O tipo da
-atividade é gravado como texto em `activity.type`, que continua aceitando texto livre nos cadastros
-manuais.
+atividade é gravado como texto no campo `tipo` da atividade, que continua aceitando texto livre nos
+cadastros manuais.
 
 ## Configuração
 

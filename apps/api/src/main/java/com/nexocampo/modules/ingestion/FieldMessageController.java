@@ -25,10 +25,10 @@ public class FieldMessageController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public FieldMessageService.FieldMessageResponse receive(
-            @RequestParam(required = false) String text,
-            @RequestPart(required = false) MultipartFile file,
+            @RequestParam(name = "texto", required = false) String texto,
+            @RequestPart(name = "arquivo", required = false) MultipartFile arquivo,
             @AuthenticationPrincipal User user) {
-        return fieldMessageService.receive(user, IncomingMessage.fromApp(text, IncomingMedia.fromUpload(file)));
+        return fieldMessageService.receive(user, IncomingMessage.fromApp(texto, IncomingMedia.fromUpload(arquivo)));
     }
 
     @GetMapping

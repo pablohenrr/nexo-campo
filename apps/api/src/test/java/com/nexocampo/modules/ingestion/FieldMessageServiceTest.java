@@ -78,7 +78,7 @@ class FieldMessageServiceTest {
 
     @Test
     void registersActivityOnPlotChosenByAi() {
-        when(interpreter.interpret(any())).thenReturn(activity("Talhão 04 - Milho Safrinha", List.of("date")));
+        when(interpreter.interpret(any())).thenReturn(activity("Talhão 04 - Milho Safrinha", List.of("data")));
         UUID activityId = UUID.randomUUID();
         when(activityService.create(eq(plot04.getId()), any(), eq(sender))).thenReturn(activityResponse(activityId));
 
@@ -86,15 +86,15 @@ class FieldMessageServiceTest {
 
         ArgumentCaptor<ActivityService.ActivityRequest> request = ArgumentCaptor.forClass(ActivityService.ActivityRequest.class);
         verify(activityService).create(eq(plot04.getId()), request.capture(), eq(sender));
-        assertThat(request.getValue().type()).isEqualTo("PULVERIZACAO");
-        assertThat(request.getValue().activityDate()).isEqualTo(TODAY);
-        assertThat(request.getValue().cost()).isEqualByComparingTo("800");
-        assertThat(request.getValue().inputs()).isEqualTo("Glifosato 2 L");
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.REGISTRADA);
-        assertThat(response.activityId()).isEqualTo(activityId);
-        assertThat(response.plotId()).isEqualTo(plot04.getId());
-        assertThat(response.reply()).contains("Talhão 04 - Milho Safrinha").contains("faltou informar data");
-        assertThat(response.interpretation().kind()).isEqualTo(MessageKind.ATIVIDADE);
+        assertThat(request.getValue().tipo()).isEqualTo("PULVERIZACAO");
+        assertThat(request.getValue().dataAtividade()).isEqualTo(TODAY);
+        assertThat(request.getValue().custo()).isEqualByComparingTo("800");
+        assertThat(request.getValue().insumos()).isEqualTo("Glifosato 2 L");
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.REGISTRADA);
+        assertThat(response.atividadeId()).isEqualTo(activityId);
+        assertThat(response.talhaoId()).isEqualTo(plot04.getId());
+        assertThat(response.resposta()).contains("Talhão 04 - Milho Safrinha").contains("faltou informar data");
+        assertThat(response.interpretacao().tipo()).isEqualTo(MessageKind.ATIVIDADE);
     }
 
     @Test
@@ -104,18 +104,18 @@ class FieldMessageServiceTest {
 
         var response = service.receive(sender, IncomingMessage.fromApp("passei veneno no talhao 4", null));
 
-        assertThat(response.plotId()).isEqualTo(plot04.getId());
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.REGISTRADA);
+        assertThat(response.talhaoId()).isEqualTo(plot04.getId());
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.REGISTRADA);
     }
 
     @Test
     void asksForPlotWhenItCannotBeIdentified() {
-        when(interpreter.interpret(any())).thenReturn(activity(null, List.of("plotName")));
+        when(interpreter.interpret(any())).thenReturn(activity(null, List.of("nomeTalhao")));
 
         var response = service.receive(sender, IncomingMessage.fromApp("passei veneno hoje", null));
 
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.SEM_TALHAO);
-        assertThat(response.reply()).contains("Talhão 01").contains("Talhão 04 - Milho Safrinha");
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.SEM_TALHAO);
+        assertThat(response.resposta()).contains("Talhão 01").contains("Talhão 04 - Milho Safrinha");
         verifyNoInteractions(activityService, occurrenceService, evidenceService);
     }
 
@@ -126,7 +126,7 @@ class FieldMessageServiceTest {
 
         var response = service.receive(sender, IncomingMessage.fromApp("passei veneno no talhão 7", null));
 
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.SEM_TALHAO);
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.SEM_TALHAO);
         verifyNoInteractions(activityService);
     }
 
@@ -138,7 +138,7 @@ class FieldMessageServiceTest {
 
         var response = service.receive(sender, IncomingMessage.fromApp("passei veneno hoje", null));
 
-        assertThat(response.plotId()).isEqualTo(plot01.getId());
+        assertThat(response.talhaoId()).isEqualTo(plot01.getId());
     }
 
     @Test
@@ -148,8 +148,8 @@ class FieldMessageServiceTest {
 
         var response = service.receive(sender, IncomingMessage.fromApp("bom dia!", null));
 
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.IGNORADA);
-        assertThat(response.reply()).isEqualTo(FieldMessageService.IGNORED_REPLY);
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.IGNORADA);
+        assertThat(response.resposta()).isEqualTo(FieldMessageService.IGNORED_REPLY);
         verifyNoInteractions(activityService, occurrenceService, evidenceService);
     }
 
@@ -163,8 +163,8 @@ class FieldMessageServiceTest {
         verify(fieldMessageRepository).save(saved.capture());
         assertThat(saved.getValue().getErrorMessage()).contains("429");
         assertThat(saved.getValue().getText()).isEqualTo("passei veneno no talhão 4");
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.FALHOU);
-        assertThat(response.reply()).isEqualTo(FieldMessageService.FAILURE_REPLY);
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.FALHOU);
+        assertThat(response.resposta()).isEqualTo(FieldMessageService.FAILURE_REPLY);
     }
 
     @Test
@@ -192,14 +192,14 @@ class FieldMessageServiceTest {
 
         ArgumentCaptor<OccurrenceService.OccurrenceRequest> occurrence = ArgumentCaptor.forClass(OccurrenceService.OccurrenceRequest.class);
         verify(occurrenceService).register(eq(plot01.getId()), occurrence.capture(), eq(sender));
-        assertThat(occurrence.getValue().category()).isEqualTo(OccurrenceCategory.PRAGA);
-        assertThat(occurrence.getValue().evidenceId()).isEqualTo(evidenceId);
-        assertThat(occurrence.getValue().observedAt()).isEqualTo(TODAY);
+        assertThat(occurrence.getValue().categoria()).isEqualTo(OccurrenceCategory.PRAGA);
+        assertThat(occurrence.getValue().evidenciaId()).isEqualTo(evidenceId);
+        assertThat(occurrence.getValue().dataObservacao()).isEqualTo(TODAY);
 
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.REGISTRADA);
-        assertThat(response.transcript()).isEqualTo("Apareceu lagarta no talhão 1");
-        assertThat(response.evidenceId()).isEqualTo(evidenceId);
-        assertThat(response.occurrenceId()).isEqualTo(occurrenceId);
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.REGISTRADA);
+        assertThat(response.transcricao()).isEqualTo("Apareceu lagarta no talhão 1");
+        assertThat(response.evidenciaId()).isEqualTo(evidenceId);
+        assertThat(response.ocorrenciaId()).isEqualTo(occurrenceId);
     }
 
     @Test
@@ -227,7 +227,7 @@ class FieldMessageServiceTest {
 
         var response = service.receive(sender, new IncomingMessage(MessageChannel.WHATSAPP, "wamid.1", "oi", null));
 
-        assertThat(response.status()).isEqualTo(FieldMessageStatus.REGISTRADA);
+        assertThat(response.situacao()).isEqualTo(FieldMessageStatus.REGISTRADA);
         verifyNoInteractions(interpreter);
         verify(fieldMessageRepository, never()).save(any());
     }

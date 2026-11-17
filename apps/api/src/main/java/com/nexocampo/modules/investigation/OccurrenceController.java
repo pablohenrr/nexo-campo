@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/talhoes/{plotId}/ocorrencias")
+@RequestMapping("/api/talhoes/{talhaoId}/ocorrencias")
 public class OccurrenceController {
 
     private final OccurrenceService occurrenceService;
@@ -21,16 +21,16 @@ public class OccurrenceController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OccurrenceService.OccurrenceResponse register(
-            @PathVariable UUID plotId,
+            @PathVariable UUID talhaoId,
             @Valid @RequestBody OccurrenceService.OccurrenceRequest request,
             @AuthenticationPrincipal User user) {
-        return occurrenceService.register(plotId, request, user);
+        return occurrenceService.register(talhaoId, request, user);
     }
 
     @GetMapping
     public List<OccurrenceService.OccurrenceResponse> findByPlot(
-            @PathVariable UUID plotId,
+            @PathVariable UUID talhaoId,
             @AuthenticationPrincipal User user) {
-        return occurrenceService.findByPlot(plotId, user);
+        return occurrenceService.findByPlot(talhaoId, user);
     }
 }
