@@ -1,3 +1,5 @@
+/apps/web/.env.local
+/apps/web/.env.*.local
 # Segredos locais
 .env
 

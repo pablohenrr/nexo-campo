@@ -1,0 +1,21 @@
+{
+  "type": "Feature",
+  "properties": {
+    "nomeFazenda": "Fazenda Boa Esperança",
+    "nome": "Talhão 04 - Milho Safrinha",
+    "tipoCultura": "MILHO",
+    "areaHectares": 24.4
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [-47.9292, -15.7801],
+        [-47.9292, -15.7850],
+        [-47.9250, -15.7850],
+        [-47.9250, -15.7801],
+        [-47.9292, -15.7801]
+      ]
+    ]
+  }
+}
