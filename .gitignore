@@ -1,2 +1,8 @@
 /apps/web/.env.local
 /apps/web/.env.*.local
+# Segredos locais
+.env
+
+# Build e arquivos gerados pela API
+/apps/api/target/
+/apps/api/storage/
