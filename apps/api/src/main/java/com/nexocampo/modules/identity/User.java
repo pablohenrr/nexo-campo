@@ -21,6 +21,9 @@ public class User {
     @Column(name = "senha_hash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "google_subject", unique = true, length = 255)
+    private String googleSubject;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "perfil", nullable = false, length = 30)
     private Role role = Role.PRODUTOR;
@@ -48,6 +51,8 @@ public class User {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email.toLowerCase(); }
     public String getPasswordHash() { return passwordHash; }
+    public String getGoogleSubject() { return googleSubject; }
+    public void setGoogleSubject(String googleSubject) { this.googleSubject = googleSubject; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

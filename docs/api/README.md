@@ -1,5 +1,7 @@
 # API do NEXO Campo
 
+Login social opcional: [configurar Google OAuth/OIDC e integrar ao frontend](google-oauth.md).
+
 ## Executar localmente
 
 1. Suba o banco:

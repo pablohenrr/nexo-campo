@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Nexo Campo — teste de login Google</title>
+  <style>
+    body { font: 1rem/1.6 system-ui,sans-serif; color:#173a2d; background:#f4f6f1; margin:0; padding:2rem; }
+    main { max-width:42rem; margin:3rem auto; padding:2rem; background:white; border:1px solid #d6dfd5; border-radius:1rem; }
+    button { font:inherit; padding:.7rem 1rem; border:1px solid #173a2d; border-radius:.4rem; background:#173a2d; color:white; cursor:pointer; }
+    button:disabled { opacity:.55; cursor:default; }
+    button:focus-visible { outline:3px solid #a36d00; outline-offset:3px; }
+    code { overflow-wrap:anywhere; } #status { min-height:3em; } small { display:block; margin-top:1.5rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Entrar no Nexo Campo</h1>
+  <p>Esta página verifica o OAuth real e uma chamada autenticada à API. Não simula o Google e não salva o token.</p>
+  <p>Sirva este diretório em <code>http://localhost:5173</code>. Configure a API em <code>http://localhost:8080</code> e a origem do frontend exatamente como <code>http://localhost:5173</code>.</p>
+  <button id="login" type="button" disabled>Continuar com Google</button>
+  <button id="cancel" type="button" hidden>Cancelar</button>
+  <p id="status" role="status" aria-live="polite">Verificando configuração da API…</p>
+  <small>Não abra por <code>file://</code>. Não use <code>noopener</code> no popup. Se seu frontend define Cross-Origin-Opener-Policy, use <code>same-origin-allow-popups</code> para este fluxo e confirme o comportamento no navegador de destino.</small>
+</main>
+<script type="module">
+  import { createGoogleLogin } from './google-login.mjs';
+  const apiOrigin = 'http://localhost:8080';
+  const google = createGoogleLogin(apiOrigin);
+  const login = document.querySelector('#login');
+  const cancel = document.querySelector('#cancel');
+  const status = document.querySelector('#status');
+  let configured = false;
+  try {
+    const response = await fetch(`${apiOrigin}/api/autenticacao/google/configuracao`, { cache:'no-store' });
+    if (!response.ok) throw new Error('Não foi possível consultar a configuração da API.');
+    const config = await response.json();
+    configured = config.enabled === true;
+    status.textContent = configured ? 'Pronto para testar. Entre com uma conta Google autorizada no cliente de teste.' : 'Google desativado na API. Configure o cliente, o segredo e GOOGLE_OAUTH_ENABLED antes de testar.';
+    login.disabled = !configured;
+  } catch {
+    status.textContent = 'API indisponível ou origem recusada pelo CORS. Confira o servidor e CORS_ALLOWED_ORIGINS.';
+  }
+  login.addEventListener('click', async () => {
+    // login() abre o popup antes do primeiro await.
+    const attempt = google.login();
+    login.disabled = true;
+    cancel.hidden = false;
+    status.textContent = 'Conclua o login na janela do Google.';
+    try {
+      const session = await attempt;
+      status.textContent = `Login concluído para ${session.nome} (${session.email}). Verificando acesso à API…`;
+      const response = await fetch(`${apiOrigin}/api/fazendas`, {
+        headers: { Authorization: `Bearer ${session.token}` }, cache:'no-store'
+      });
+      if (!response.ok) throw new Error('O Google autenticou, mas a consulta protegida à API falhou.');
+      const farms = await response.json();
+      status.textContent = `Login e acesso à API confirmados para ${session.nome} (${session.email}). Fazendas disponíveis: ${Array.isArray(farms) ? farms.length : 'resposta inesperada'}.`;
+    } catch (error) { status.textContent = error.message; }
+    finally { login.disabled = !configured; cancel.hidden = true; }
+  });
+  cancel.addEventListener('click', () => google.cancel());
+  window.addEventListener('pagehide', () => google.cancel());
+</script>
+</body>
+</html>
