@@ -1,6 +1,7 @@
 package com.nexocampo.config;
 
 import com.nexocampo.modules.identity.JwtAuthenticationFilter;
+import com.nexocampo.modules.identity.GoogleOAuth2SuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,9 +19,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            GoogleOAuth2SuccessHandler googleOAuth2SuccessHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.googleOAuth2SuccessHandler = googleOAuth2SuccessHandler;
     }
 
     @Bean
@@ -35,10 +40,17 @@ public class SecurityConfig {
                                 "/api/autenticacao/**",
                                 "/api/saude",
                                 "/api/webhooks/**",
+                                "/oauth2/**",
+                                "/login/oauth2/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth -> oauth
+                        .successHandler(googleOAuth2SuccessHandler)
+                        .failureHandler((request, response, exception) ->
+                                response.sendRedirect(googleOAuth2SuccessHandler.frontendUrl(
+                                        "/oauth/callback?erro=oauth_google_falhou"))))
                 .build();
     }
 

@@ -40,6 +40,8 @@ quando o perfil `dev` está ativo.
 | GET | `/api/saude` | Público |
 | POST | `/api/autenticacao/cadastro` | Público |
 | POST | `/api/autenticacao/login` | Público |
+| GET | `/oauth2/authorization/google` | Público; inicia login OAuth2 |
+| GET | `/login/oauth2/code/google` | Público; callback configurado no Google |
 | POST | `/api/fazendas` | JWT |
 | GET | `/api/fazendas` | JWT |
 | POST | `/api/fazendas/{fazendaId}/talhoes` | JWT |
@@ -68,3 +70,23 @@ substituída pelo adaptador do Supabase Storage.
 O módulo de ingestão implementará o webhook oficial do WhatsApp Cloud API em
 `GET` e `POST /api/webhooks/whatsapp`. A rota já está liberada no Spring Security
 para que a assinatura HMAC-SHA256 seja validada sobre o corpo cru no controller.
+
+## Login OAuth2 com Google
+
+Configure estas variáveis antes de iniciar o backend:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `FRONTEND_URL`, com `http://localhost:5173` como padrão local
+
+Inicie o fluxo em:
+
+- `http://localhost:8080/oauth2/authorization/google`
+
+Cadastre no Google Cloud Console:
+
+- `http://localhost:8080/login/oauth2/code/google`
+
+Após o sucesso, o backend redireciona o navegador para:
+
+- `http://localhost:5173/oauth/callback#token=<jwt>`

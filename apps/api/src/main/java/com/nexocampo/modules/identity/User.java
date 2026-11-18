@@ -18,8 +18,14 @@ public class User {
     @Column(nullable = false, unique = true, length = 180)
     private String email;
 
-    @Column(name = "senha_hash", nullable = false)
+    @Column(name = "senha_hash")
     private String passwordHash;
+
+    @Column(name = "provedor", length = 30)
+    private String provider;
+
+    @Column(name = "provedor_id", length = 255)
+    private String providerSubject;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "perfil", nullable = false, length = 30)
@@ -49,6 +55,10 @@ public class User {
     public void setEmail(String email) { this.email = email.toLowerCase(); }
     public String getPasswordHash() { return passwordHash; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public String getProvider() { return provider; }
+    public void setProvider(String provider) { this.provider = provider; }
+    public String getProviderSubject() { return providerSubject; }
+    public void setProviderSubject(String providerSubject) { this.providerSubject = providerSubject; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
 }

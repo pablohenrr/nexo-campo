@@ -30,16 +30,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            if (jwtService.isValid(token)) {
-                userRepository.findById(jwtService.extractUserId(token)).ifPresent(user -> {
-                    var authentication = new UsernamePasswordAuthenticationToken(
-                            user,
-                            null,
-                            java.util.List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                });
-            }
+            autenticarPorToken(token, request);
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void autenticarPorToken(String token, HttpServletRequest request) {
+        if (!jwtService.isValid(token)) {
+            return;
+        }
+        userRepository.findById(jwtService.extractUserId(token)).ifPresent(user -> {
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    user,
+                    null,
+                    java.util.List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        });
     }
 }
