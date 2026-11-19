@@ -12,6 +12,10 @@ public record IncomingMessage(MessageChannel channel, String externalId, String 
         return new IncomingMessage(MessageChannel.APP, null, text, media);
     }
 
+    public static IncomingMessage fromWhatsApp(String messageId, String text, IncomingMedia media) {
+        return new IncomingMessage(MessageChannel.WHATSAPP, messageId, text, media);
+    }
+
     public boolean hasText() {
         return text != null && !text.isBlank();
     }

@@ -142,6 +142,12 @@ public class FieldMessageService {
         });
     }
 
+    /** Para o canal checar reenvios antes de baixar mídia ou responder de novo. */
+    @Transactional(readOnly = true)
+    public boolean alreadyReceived(MessageChannel channel, String externalId) {
+        return externalId != null && fieldMessageRepository.existsByChannelAndExternalId(channel, externalId);
+    }
+
     @Transactional(readOnly = true)
     public List<FieldMessageResponse> findMine(User sender) {
         return fieldMessageRepository.findTop50BySenderIdOrderByCreatedAtDesc(sender.getId())
