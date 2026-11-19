@@ -163,7 +163,7 @@ projeto.
 
 ## Limitações conhecidas do MVP
 
-- A chamada à IA é síncrona (alguns segundos). O webhook do WhatsApp vai responder na hora e
-  processar em segundo plano.
+- Pelo app, a chamada à IA é síncrona (alguns segundos). O webhook do WhatsApp responde na hora e
+  processa em segundo plano ([whatsapp.md](whatsapp.md)).
 - Mensagens `SEM_TALHAO` não guardam o arquivo; o produtor precisa reenviar citando o talhão.
 - Se a gravação falhar depois de salvar o arquivo da evidência, o arquivo fica órfão no storage.

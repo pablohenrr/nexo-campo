@@ -52,10 +52,14 @@ quando o perfil `dev` está ativo.
 | GET | `/api/talhoes/{talhaoId}/ocorrencias` | JWT |
 | POST | `/api/ingestao/mensagens` | JWT |
 | GET | `/api/ingestao/mensagens` | JWT |
-| POST | `/api/webhooks/**` | Público; implementação no módulo de ingestão |
+| PUT | `/api/ingestao/whatsapp/vinculo` | JWT |
+| GET | `/api/ingestao/whatsapp/vinculo` | JWT |
+| DELETE | `/api/ingestao/whatsapp/vinculo` | JWT |
+| GET | `/api/webhooks/whatsapp` | Público (confirmação da Meta) |
+| POST | `/api/webhooks/whatsapp` | Público; exige a assinatura da Meta |
 
 A ingestão com IA (mensagens de texto, áudio e foto que viram atividades e ocorrências) está
-descrita em [ingestao-ia.md](ingestao-ia.md).
+descrita em [ingestao-ia.md](ingestao-ia.md). O canal do WhatsApp está em [whatsapp.md](whatsapp.md).
 
 O campo `limiteWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
 
@@ -65,6 +69,6 @@ assinatura do conteúdo. São aceitos JPEG, PNG, WebP, MP4, MP3, WAV, OGG, M4A e
 O armazenamento local usa `STORAGE_ROOT`; em produção, essa implementação deve ser
 substituída pelo adaptador do Supabase Storage.
 
-O módulo de ingestão implementará o webhook oficial do WhatsApp Cloud API em
-`GET` e `POST /api/webhooks/whatsapp`. A rota já está liberada no Spring Security
-para que a assinatura HMAC-SHA256 seja validada sobre o corpo cru no controller.
+O webhook oficial da WhatsApp Cloud API fica em `GET` e `POST /api/webhooks/whatsapp`
+([whatsapp.md](whatsapp.md)). A rota é liberada no Spring Security e a assinatura
+HMAC-SHA256 da Meta é validada sobre o corpo cru no controller.
