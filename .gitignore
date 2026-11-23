@@ -3,6 +3,10 @@
 # Segredos locais
 .env
 
+# Dependências e arquivos locais que não vão para o repositório
+/node_modules/
+/.cursor/
+
 # Build e arquivos gerados pela API
 /apps/api/target/
 /apps/api/storage/

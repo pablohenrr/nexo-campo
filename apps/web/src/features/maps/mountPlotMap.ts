@@ -1,6 +1,8 @@
-import type { Feature, Polygon } from 'geojson';
+import type { Feature, FeatureCollection, Polygon } from 'geojson';
 import type {
+  ExpressionSpecification,
   FitBoundsOptions,
+  GeoJSONSource,
   LngLatBoundsLike,
   Map as MapLibreMap,
   RasterDEMSourceSpecification,
@@ -13,6 +15,8 @@ export type PlotFeature = Feature<Polygon, {
   nome: string;
   tipoCultura: string;
   areaHectares: number;
+  talhaoId?: string;
+  estado?: string;
 }>;
 
 const sourceId = 'nexo-plot';
@@ -20,6 +24,7 @@ const fillLayerId = 'nexo-plot-fill';
 const satelliteLayerId = 'nexo-satellite';
 const aerialLayerId = 'nexo-aerial';
 const terrainSourceId = 'nexo-terrain';
+const hillshadeLayerId = 'nexo-hillshade';
 const fitBoundsOptions = { padding: 48, maxZoom: 17, duration: 0 };
 const mapLocale = {
   'AttributionControl.ToggleAttribution': 'Mostrar ou ocultar créditos do mapa',
@@ -89,7 +94,8 @@ function setRasterOverlay(
   }
 
   if (enabled && source && !map.getLayer(id)) {
-    map.addLayer({ id, type: 'raster', source: id }, fillLayerId);
+    const before = map.getLayer(fillLayerId) ? fillLayerId : map.getLayer('nexo-field-fill') ? 'nexo-field-fill' : undefined;
+    map.addLayer({ id, type: 'raster', source: id }, before);
   }
 
   if (map.getLayer(id)) {
@@ -108,12 +114,44 @@ export function setSatelliteOverlay(
   setRasterOverlay(map, aerialLayerId, enabled, aerial);
 }
 
-export function setTerrainMode(map: MapLibreMap, source: RasterDEMSourceSpecification, enabled: boolean): void {
-  if (enabled && !map.getSource(terrainSourceId)) {
+export function setTerrainMode(
+  map: MapLibreMap,
+  source: RasterDEMSourceSpecification | undefined,
+  enabled: boolean,
+): void {
+  if (enabled && source && !map.getSource(terrainSourceId)) {
     map.addSource(terrainSourceId, source);
   }
 
-  map.setTerrain(enabled ? { source: terrainSourceId, exaggeration: 1.25 } : null);
+  if (!map.getSource(terrainSourceId)) {
+    map.setTerrain(null);
+    return;
+  }
+
+  map.setTerrain(enabled ? { source: terrainSourceId, exaggeration: 1.5 } : null);
+
+  if (enabled && !map.getLayer(hillshadeLayerId)) {
+    const before = map.getLayer(fillLayerId)
+      ? fillLayerId
+      : map.getLayer('nexo-field-fill')
+        ? 'nexo-field-fill'
+        : undefined;
+    map.addLayer({
+      id: hillshadeLayerId,
+      type: 'hillshade',
+      source: terrainSourceId,
+      paint: {
+        'hillshade-exaggeration': 0.45,
+        'hillshade-shadow-color': '#1a2e24',
+        'hillshade-highlight-color': '#f4f7f2',
+        'hillshade-accent-color': '#6b7c72',
+      },
+    }, before);
+  }
+
+  if (map.getLayer(hillshadeLayerId)) {
+    map.setLayoutProperty(hillshadeLayerId, 'visibility', enabled ? 'visible' : 'none');
+  }
 }
 
 export function mountPlotMap(
@@ -185,6 +223,123 @@ export function mountPlotMap(
       onReady();
     };
     map.on('idle', confirmRender);
+  });
+
+  return map;
+}
+
+const fieldFill = 'nexo-field-fill';
+const fieldLine = 'nexo-field-line';
+const fillColor: ExpressionSpecification = [
+  'match',
+  ['coalesce', ['get', 'estado'], 'MONITORAMENTO'],
+  'INFESTACAO_ALTA', '#B91C1C',
+  'ALERTA_MEDIO', '#B45309',
+  'ALERTA_BAIXO', '#067647',
+  'COLHEITA', '#B45309',
+  'INATIVO', '#8A978F',
+  '#D7E6DC',
+];
+
+export function boundsOf(features: PlotFeature[]): LngLatBoundsLike | null {
+  let west = Infinity;
+  let south = Infinity;
+  let east = -Infinity;
+  let north = -Infinity;
+
+  for (const feature of features) {
+    for (const ring of feature.geometry.coordinates) {
+      for (const position of ring) {
+        const longitude = position[0];
+        const latitude = position[1];
+        if (longitude == null || latitude == null) continue;
+        west = Math.min(west, longitude);
+        south = Math.min(south, latitude);
+        east = Math.max(east, longitude);
+        north = Math.max(north, latitude);
+      }
+    }
+  }
+
+  if (!Number.isFinite(west) || west >= east || south >= north) return null;
+  return [[west, south], [east, north]];
+}
+
+export function setFieldPlots(map: MapLibreMap, features: PlotFeature[], selectedId: string | null): void {
+  const source = map.getSource(sourceId) as GeoJSONSource | undefined;
+  if (!source || !map.getLayer(fieldFill)) return;
+
+  const collection: FeatureCollection<Polygon, PlotFeature['properties']> = {
+    type: 'FeatureCollection',
+    features: features.map((feature) => ({
+      ...feature,
+      id: feature.properties.talhaoId ?? feature.id,
+    })),
+  };
+  source.setData(collection);
+
+  for (const feature of collection.features) {
+    if (feature.id == null) continue;
+    map.setFeatureState(
+      { source: sourceId, id: feature.id },
+      { selected: feature.id === selectedId },
+    );
+  }
+}
+
+/** Mapa da fazenda inteira. O talhão único continua em mountPlotMap. */
+export function mountFieldMap(
+  Map: typeof MapLibreMap,
+  container: HTMLElement,
+  style: string | StyleSpecification,
+  onSelect: (talhaoId: string) => void,
+  onReady?: () => void,
+): MapLibreMap {
+  const map = new Map({
+    container,
+    style,
+    center: [-51.5, -24.6],
+    zoom: 6,
+    locale: mapLocale,
+    attributionControl: { compact: true },
+  });
+
+  map.once('load', () => {
+    map.resize();
+    map.addSource(sourceId, {
+      type: 'geojson',
+      promoteId: 'talhaoId',
+      data: { type: 'FeatureCollection', features: [] },
+    });
+    map.addLayer({
+      id: fieldFill,
+      type: 'fill',
+      source: sourceId,
+      paint: {
+        'fill-color': fillColor,
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 0.55, 0.38],
+      },
+    });
+    map.addLayer({
+      id: fieldLine,
+      type: 'line',
+      source: sourceId,
+      paint: {
+        'line-color': '#0F291E',
+        'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3.5, 1.5],
+      },
+    });
+    map.on('click', fieldFill, (event) => {
+      const talhaoId = event.features?.[0]?.properties?.talhaoId;
+      if (typeof talhaoId === 'string' && talhaoId.length > 0) onSelect(talhaoId);
+    });
+    map.on('mouseenter', fieldFill, () => {
+      map.getCanvas().style.cursor = 'pointer';
+    });
+    map.on('mouseleave', fieldFill, () => {
+      map.getCanvas().style.cursor = '';
+    });
+    onReady?.();
   });
 
   return map;

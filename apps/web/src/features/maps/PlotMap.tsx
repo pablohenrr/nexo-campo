@@ -65,7 +65,7 @@ export function PlotMap({ plot, mapStyle, onSelect }: PlotMapProps) {
       };
     } catch {
       window.clearTimeout(timeout);
-      setReadiness({ plot, style: mapStyle, ready: false });
+      queueMicrotask(() => setReadiness({ plot, style: mapStyle, ready: false }));
     }
   }, [plot, mapStyle]);
 
