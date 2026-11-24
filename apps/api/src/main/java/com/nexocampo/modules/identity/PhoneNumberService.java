@@ -8,6 +8,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class PhoneNumberService {
 
+    /** O telefone identifica o produtor no WhatsApp, então só pode estar em uma conta. */
+    public static final String PHONE_IN_USE = "Este telefone já está cadastrado em outra conta";
+
     private final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
 
     public String normalizeForSms(String phoneNumber, boolean smsNotificationsEnabled) {

@@ -31,12 +31,15 @@ public class AuthService {
         if (userRepository.existsByEmailIgnoreCase(request.email())) {
             throw new IllegalArgumentException("E-mail já cadastrado");
         }
+        String phoneNumber = phoneNumberService.normalizeForSms(request.telefone(), request.notificacoesSmsAtivas());
+        if (phoneNumber != null && userRepository.existsByPhoneNumber(phoneNumber)) {
+            throw new IllegalArgumentException(PhoneNumberService.PHONE_IN_USE);
+        }
         User user = new User();
         user.setName(request.nome());
         user.setEmail(request.email());
         user.setPasswordHash(passwordEncoder.encode(request.senha()));
-        user.setPhoneNumber(phoneNumberService.normalizeForSms(
-                request.telefone(), request.notificacoesSmsAtivas()));
+        user.setPhoneNumber(phoneNumber);
         user.setSmsNotificationsEnabled(request.notificacoesSmsAtivas());
         userRepository.save(user);
         return new AuthResponse(jwtService.generateToken(user), user.getId(), user.getName(), user.getEmail(), user.getRole());

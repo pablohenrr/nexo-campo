@@ -31,4 +31,22 @@ class AuthServicePhoneRegistrationTest {
         assertThat(captor.getValue().getPhoneNumber()).isEqualTo("+5511987654321");
         assertThat(captor.getValue().isSmsNotificationsEnabled()).isTrue();
     }
+
+    @Test
+    void rejectsAPhoneAlreadyRegisteredInAnotherAccount() {
+        UserRepository userRepository = mock(UserRepository.class);
+        PhoneNumberService phoneNumberService = new PhoneNumberService();
+        AuthService service = new AuthService(
+                userRepository,
+                mock(org.springframework.security.crypto.password.PasswordEncoder.class),
+                mock(JwtService.class),
+                phoneNumberService);
+        when(userRepository.existsByPhoneNumber("+5511987654321")).thenReturn(true);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.register(new AuthService.RegisterRequest(
+                        "Produtor", "outro@example.com", "senha-segura-123", "(11) 98765-4321", false)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(PhoneNumberService.PHONE_IN_USE);
+        org.mockito.Mockito.verify(userRepository, org.mockito.Mockito.never()).save(any());
+    }
 }
