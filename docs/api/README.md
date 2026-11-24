@@ -42,8 +42,9 @@ quando o perfil `dev` está ativo.
 | GET | `/api/saude` | Público |
 | POST | `/api/autenticacao/cadastro` | Público |
 | POST | `/api/autenticacao/login` | Público |
-| GET | `/api/usuarios/me/contato` | JWT |
-| PUT | `/api/usuarios/me/contato` | JWT |
+| GET | `/api/usuarios/me` | JWT |
+| PUT | `/api/usuarios/me` | JWT |
+| PUT | `/api/usuarios/me/senha` | JWT |
 | POST | `/api/fazendas` | JWT |
 | GET | `/api/fazendas` | JWT |
 | POST | `/api/fazendas/{fazendaId}/talhoes` | JWT |
@@ -65,8 +66,33 @@ O campo `limiteWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
 
 O cadastro aceita `telefone` opcional e `notificacoesSmsAtivas` (padrão `false`).
 Números válidos são normalizados para E.164 com região padrão Brasil (`+55`).
-Para ativar SMS, informe um número móvel válido. O usuário pode consultar e atualizar
-seu telefone e a preferência usando `GET` e `PUT /api/usuarios/me/contato`.
+Para ativar SMS, informe um número móvel válido. O telefone também identifica o produtor
+quando ele escreve no WhatsApp, por isso um número só pode estar em uma conta.
+
+### Perfil do usuário logado
+
+`GET /api/usuarios/me` devolve o perfil:
+
+```json
+{
+  "id": "6f1c...",
+  "nome": "Maria da Silva",
+  "email": "maria@exemplo.com",
+  "perfil": "PRODUTOR",
+  "telefone": "+5511987654321",
+  "notificacoesSmsAtivas": true,
+  "contaGoogle": false,
+  "criadoEm": "2026-11-20T10:00:00Z"
+}
+```
+
+`PUT /api/usuarios/me` recebe `{ "nome", "telefone", "notificacoesSmsAtivas" }` e devolve o perfil
+atualizado. O e-mail não muda por aqui, porque é o login (e, em contas Google, vem do Google).
+Telefone vazio ou `null` remove o número.
+
+`PUT /api/usuarios/me/senha` recebe `{ "senhaAtual", "novaSenha" }` (mínimo de 8 caracteres) e
+responde `204`. Contas que entram pelo Google (`contaGoogle: true`) não têm senha para trocar e
+recebem `400`.
 
 Uploads usam `multipart/form-data`, com os campos `tipo` (`FOTO`, `VIDEO`, `AUDIO` ou
 `DOCUMENTO`) e `arquivo`. O limite configurado é de 2 GB por arquivo e a API valida a
