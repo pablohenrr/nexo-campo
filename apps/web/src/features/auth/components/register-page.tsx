@@ -13,6 +13,8 @@ export function RegisterPage() {
   const sessao = useSyncExternalStore(ouvirSessao, sessaoAtual, () => null)
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
+  const [telefone, setTelefone] = useState('')
+  const [notificacoesSmsAtivas, setNotificacoesSmsAtivas] = useState(false)
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -30,7 +32,13 @@ export function RegisterPage() {
     try {
       definirSessao(await api<Sessao>('/api/autenticacao/cadastro', {
         method: 'POST',
-        body: JSON.stringify({ nome: nome.trim(), email: email.trim(), senha }),
+        body: JSON.stringify({
+          nome: nome.trim(),
+          email: email.trim(),
+          senha,
+          telefone: telefone.trim() || null,
+          notificacoesSmsAtivas,
+        }),
       }))
     } catch (error) {
       setErro(error instanceof ApiError ? error.message : 'Não foi possível criar a conta.')
@@ -61,6 +69,26 @@ export function RegisterPage() {
             onChange={(event) => setEmail(event.target.value)}
           />
         </Field>
+        <Field label="Telefone (opcional)">
+          <TextInput
+            type="tel"
+            name="telefone"
+            autoComplete="tel"
+            placeholder="(11) 99999-9999"
+            value={telefone}
+            onChange={(event) => setTelefone(event.target.value)}
+          />
+        </Field>
+        <label className="mb-6 flex items-start gap-3 text-base text-tinta">
+          <input
+            type="checkbox"
+            name="notificacoesSmsAtivas"
+            checked={notificacoesSmsAtivas}
+            onChange={(event) => setNotificacoesSmsAtivas(event.target.checked)}
+            className="mt-1 size-4 accent-chuva"
+          />
+          <span>Quero receber notificações por SMS. Posso alterar essa preferência no meu perfil.</span>
+        </label>
         <Field label="Senha">
           <TextInput
             type="password"

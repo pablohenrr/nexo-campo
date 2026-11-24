@@ -42,6 +42,8 @@ quando o perfil `dev` está ativo.
 | GET | `/api/saude` | Público |
 | POST | `/api/autenticacao/cadastro` | Público |
 | POST | `/api/autenticacao/login` | Público |
+| GET | `/api/usuarios/me/contato` | JWT |
+| PUT | `/api/usuarios/me/contato` | JWT |
 | POST | `/api/fazendas` | JWT |
 | GET | `/api/fazendas` | JWT |
 | POST | `/api/fazendas/{fazendaId}/talhoes` | JWT |
@@ -60,6 +62,11 @@ A ingestão com IA (mensagens de texto, áudio e foto que viram atividades e oco
 descrita em [ingestao-ia.md](ingestao-ia.md).
 
 O campo `limiteWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
+
+O cadastro aceita `telefone` opcional e `notificacoesSmsAtivas` (padrão `false`).
+Números válidos são normalizados para E.164 com região padrão Brasil (`+55`).
+Para ativar SMS, informe um número móvel válido. O usuário pode consultar e atualizar
+seu telefone e a preferência usando `GET` e `PUT /api/usuarios/me/contato`.
 
 Uploads usam `multipart/form-data`, com os campos `tipo` (`FOTO`, `VIDEO`, `AUDIO` ou
 `DOCUMENTO`) e `arquivo`. O limite configurado é de 2 GB por arquivo e a API valida a

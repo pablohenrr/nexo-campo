@@ -24,6 +24,12 @@ public class User {
     @Column(name = "google_subject", unique = true, length = 255)
     private String googleSubject;
 
+    @Column(name = "telefone", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "notificacoes_sms_ativas", nullable = false)
+    private boolean smsNotificationsEnabled;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "perfil", nullable = false, length = 30)
     private Role role = Role.PRODUTOR;
@@ -53,6 +59,12 @@ public class User {
     public String getPasswordHash() { return passwordHash; }
     public String getGoogleSubject() { return googleSubject; }
     public void setGoogleSubject(String googleSubject) { this.googleSubject = googleSubject; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public boolean isSmsNotificationsEnabled() { return smsNotificationsEnabled; }
+    public void setSmsNotificationsEnabled(boolean smsNotificationsEnabled) {
+        this.smsNotificationsEnabled = smsNotificationsEnabled;
+    }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
