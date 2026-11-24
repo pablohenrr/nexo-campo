@@ -1,7 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { LoginPage } from '@/features/auth/components/login-page.tsx'
 import { RegisterPage } from '@/features/auth/components/register-page.tsx'
-import { ProfilePage } from '@/features/auth/components/profile-page.tsx'
+import { ProfilePage } from '@/features/profile/components/profile-page.tsx'
 import { DashboardPage } from '@/features/dashboard/components/dashboard-page.tsx'
 import { AppShell } from '@/shared/components/layout/app-shell.tsx'
 import { AreaPlaceholder } from '@/shared/components/layout/area-placeholder.tsx'
