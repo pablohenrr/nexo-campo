@@ -1,12 +1,14 @@
+-- Senha "password", a mesma anunciada na tela de entrada. O DO UPDATE corrige bancos criados com o
+-- hash antigo, que não correspondia a essa senha.
 INSERT INTO usuario (id, nome, email, senha_hash, perfil)
 VALUES (
     '00000000-0000-0000-0000-000000000001',
     'Usuário Demo',
     'demo@nexocampo.local',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+    '$2a$10$6Y5opYP8qqqj1nGUvEaccubW3j.K6RAXnFBku6vmc4iXJN1DPKE8O',
     'PRODUTOR'
 )
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE SET senha_hash = EXCLUDED.senha_hash;
 
 INSERT INTO fazenda (
     id, nome, proprietario_id, descricao, municipio, estado, area_total_hectares, latitude, longitude
