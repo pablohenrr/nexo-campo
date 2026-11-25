@@ -3,10 +3,8 @@ import { Link } from 'react-router'
 import { listarFazendas } from '@/features/farms/api.ts'
 import type { Fazenda } from '@/features/farms/types/index.ts'
 import { listarTalhoes } from '@/features/plots/api.ts'
+import { linkComoBotao, painel, tituloDoPainel } from '@/features/profile/estilo.ts'
 import { hectares } from '@/shared/lib/format.ts'
-
-const classeDoLink =
-  'inline-flex min-h-12 shrink-0 items-center rounded-full border border-linha px-5 text-base font-medium text-tinta'
 
 /** Resumo das fazendas no perfil. A edição fica no mapa, então cada uma leva para lá. */
 export function FarmsSummary() {
@@ -21,26 +19,26 @@ export function FarmsSummary() {
   })
 
   return (
-    <section aria-labelledby="perfil-fazendas" className="rounded-controle border border-linha bg-orvalho p-6">
-      <h2 id="perfil-fazendas" className="mb-2 text-2xl tracking-tight">Suas fazendas</h2>
+    <section aria-labelledby="perfil-fazendas" className={painel}>
+      <h2 id="perfil-fazendas" className={tituloDoPainel}>Suas fazendas</h2>
       {fazendas.isPending ? (
-        <p className="text-base text-nevoa">Carregando fazendas…</p>
+        <p className="text-lg">Carregando fazendas…</p>
       ) : fazendas.isError ? (
         <p role="alert" className="text-base text-perigo">Não foi possível carregar as fazendas.</p>
       ) : lista.length === 0 ? (
         <div className="flex flex-col items-start gap-4">
-          <p className="text-base text-nevoa">Você ainda não cadastrou nenhuma fazenda.</p>
-          <Link to="/" className={classeDoLink}>Cadastrar fazenda</Link>
+          <p className="text-lg text-tinta">Você ainda não cadastrou nenhuma fazenda.</p>
+          <Link to="/" className={linkComoBotao}>Cadastrar fazenda</Link>
         </div>
       ) : (
-        <ul className="divide-y divide-linha">
+        <ul className="border-t border-linha">
           {lista.map((fazenda, indice) => (
-            <li key={fazenda.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
+            <li key={fazenda.id} className="flex flex-wrap items-center justify-between gap-4 border-b border-linha py-4">
               <div className="min-w-0">
-                <p className="text-lg text-tinta">{fazenda.nome}</p>
-                <p className="mt-1 text-base text-nevoa">{detalhes(fazenda, talhoes[indice]?.data?.length)}</p>
+                <p className="text-base font-medium">{fazenda.nome}</p>
+                <p className="mt-1 text-base text-tinta">{detalhes(fazenda, talhoes[indice]?.data?.length)}</p>
               </div>
-              <Link to={`/?fazenda=${fazenda.id}`} className={classeDoLink} aria-label={`Abrir ${fazenda.nome} no mapa`}>
+              <Link to={`/?fazenda=${fazenda.id}`} className={linkComoBotao} aria-label={`Abrir ${fazenda.nome} no mapa`}>
                 Abrir no mapa
               </Link>
             </li>

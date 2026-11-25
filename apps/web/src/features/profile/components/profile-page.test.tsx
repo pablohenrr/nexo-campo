@@ -60,7 +60,7 @@ describe('ProfilePage', () => {
     renderizar()
 
     const nome = await screen.findByRole('textbox', { name: /^Nome/ })
-    expect((screen.getByRole('textbox', { name: /^Celular/ }) as HTMLInputElement).value).toBe('(11) 98765-4321')
+    expect((screen.getByRole('textbox', { name: /^Telefone/ }) as HTMLInputElement).value).toBe('(11) 98765-4321')
     expect(screen.getByText('maria@example.com')).not.toBeNull()
     expect(screen.getByText('No NEXO Campo desde novembro de 2026')).not.toBeNull()
     const salvar = screen.getByRole('button', { name: 'Salvar alterações' }) as HTMLButtonElement
@@ -85,7 +85,7 @@ describe('ProfilePage', () => {
     vi.mocked(salvarPerfil).mockRejectedValue(new ApiError(400, 'Este telefone já está cadastrado em outra conta'))
     renderizar()
 
-    fireEvent.change(await screen.findByRole('textbox', { name: /^Celular/ }), { target: { value: '(21) 99999-0000' } })
+    fireEvent.change(await screen.findByRole('textbox', { name: /^Telefone/ }), { target: { value: '(21) 99999-0000' } })
     fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
 
     const campo = await screen.findByRole('textbox', { name: /já está cadastrado em outra conta/ })
@@ -97,10 +97,10 @@ describe('ProfilePage', () => {
     vi.mocked(buscarPerfil).mockResolvedValue({ ...perfil, telefone: null, notificacoesSmsAtivas: false })
     renderizar()
 
-    fireEvent.click(await screen.findByRole('checkbox', { name: 'Quero receber avisos por SMS.' }))
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'Quero receber notificações por SMS.' }))
     fireEvent.click(screen.getByRole('button', { name: 'Salvar alterações' }))
 
-    expect(screen.getByText('Informe o celular para receber os avisos por SMS.')).not.toBeNull()
+    expect(screen.getByText('Informe o telefone para receber as notificações por SMS.')).not.toBeNull()
     expect(salvarPerfil).not.toHaveBeenCalled()
   })
 
@@ -182,7 +182,7 @@ describe('ProfilePage', () => {
     expect((await screen.findByRole('alert')).textContent).toBe('A API não respondeu. Confira se ela está no ar.')
     expect(screen.queryByRole('button', { name: 'Salvar alterações' })).toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar de novo' }))
 
     expect(await screen.findByRole('button', { name: 'Salvar alterações' })).not.toBeNull()
     expect(buscarPerfil).toHaveBeenCalledTimes(2)

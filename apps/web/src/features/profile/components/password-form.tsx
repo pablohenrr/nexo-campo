@@ -1,17 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { trocarSenha } from '@/features/profile/api.ts'
+import { painel, tituloDoPainel } from '@/features/profile/estilo.ts'
 import { ApiError } from '@/shared/lib/api.ts'
 import { Button } from '@/shared/components/ui/button.tsx'
 import { Field, TextInput } from '@/shared/components/ui/field.tsx'
 
-const classeDoCartao = 'rounded-controle border border-linha bg-orvalho p-6'
-
 export function PasswordForm({ contaGoogle }: { contaGoogle: boolean }) {
   if (contaGoogle) {
     return (
-      <section aria-labelledby="perfil-senha" className={classeDoCartao}>
-        <h2 id="perfil-senha" className="mb-4 text-2xl tracking-tight">Senha</h2>
+      <section aria-labelledby="perfil-senha" className={painel}>
+        <h2 id="perfil-senha" className={tituloDoPainel}>Senha</h2>
         <p className="text-base text-nevoa">
           Você entra com o Google, então não existe uma senha do NEXO Campo para trocar. A senha é a da
           sua conta Google.
@@ -64,8 +63,8 @@ function PasswordChange() {
   }
 
   return (
-    <form onSubmit={onSubmit} noValidate aria-labelledby="perfil-senha" className={classeDoCartao}>
-      <h2 id="perfil-senha" className="mb-6 text-2xl tracking-tight">Senha</h2>
+    <form onSubmit={onSubmit} noValidate aria-labelledby="perfil-senha" className={painel}>
+      <h2 id="perfil-senha" className={tituloDoPainel}>Senha</h2>
       <Field label="Senha atual" error={erros.atual}>
         <TextInput
           type="password"

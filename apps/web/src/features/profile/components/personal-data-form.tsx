@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { definirSessao, sessaoAtual } from '@/features/auth/session.ts'
 import { salvarPerfil } from '@/features/profile/api.ts'
 import type { Perfil } from '@/features/profile/types.ts'
+import { painel, tituloDoPainel } from '@/features/profile/estilo.ts'
 import { ApiError } from '@/shared/lib/api.ts'
 import { telefoneLegivel } from '@/shared/lib/format.ts'
 import { Button } from '@/shared/components/ui/button.tsx'
@@ -55,20 +56,15 @@ export function PersonalDataForm({ perfil }: { perfil: Perfil }) {
     setSalvo(false)
     const novos: Erros = {}
     if (!nome.trim()) novos.nome = 'Informe seu nome.'
-    if (sms && !telefone.trim()) novos.telefone = 'Informe o celular para receber os avisos por SMS.'
+    if (sms && !telefone.trim()) novos.telefone = 'Informe o telefone para receber as notificações por SMS.'
     setErros(novos)
     if (novos.nome || novos.telefone) return
     salvar.mutate({ nome: nome.trim(), telefone: telefone.trim() || null, notificacoesSmsAtivas: sms })
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      noValidate
-      aria-labelledby="perfil-dados"
-      className="rounded-controle border border-linha bg-orvalho p-6"
-    >
-      <h2 id="perfil-dados" className="mb-6 text-2xl tracking-tight">Dados pessoais</h2>
+    <form onSubmit={onSubmit} noValidate aria-labelledby="perfil-dados" className={painel}>
+      <h2 id="perfil-dados" className={tituloDoPainel}>Dados pessoais</h2>
       <Field label="Nome" error={erros.nome}>
         <TextInput
           name="nome"
@@ -80,10 +76,9 @@ export function PersonalDataForm({ perfil }: { perfil: Perfil }) {
         />
       </Field>
       <div className="mb-6 text-base text-tinta">
-        <p>E-mail</p>
-        <p className="mt-2 flex min-h-12 items-center break-all rounded-controle border border-linha bg-cerca px-3">
-          {perfil.email}
-        </p>
+        {/* Só leitura: texto puro em vez de um campo desabilitado. */}
+        <p className="font-semibold tracking-tight">E-mail</p>
+        <p className="mt-2 break-all">{perfil.email}</p>
         <p className="mt-2 text-nevoa">
           {perfil.contaGoogle
             ? 'Vem da sua conta Google e não pode ser trocado aqui.'
@@ -91,8 +86,8 @@ export function PersonalDataForm({ perfil }: { perfil: Perfil }) {
         </p>
       </div>
       <Field
-        label="Celular"
-        hint="Use o número do seu WhatsApp. É por ele que reconhecemos as mensagens que você manda e é ele que recebe os avisos por SMS."
+        label="Telefone"
+        hint="Use o celular do seu WhatsApp. É por ele que reconhecemos as mensagens que você manda e é ele que recebe as notificações por SMS."
         error={erros.telefone}
       >
         <TextInput
@@ -114,7 +109,7 @@ export function PersonalDataForm({ perfil }: { perfil: Perfil }) {
           onChange={(event) => editar(() => setSms(event.target.checked))}
           className="mt-1 size-4 accent-chuva"
         />
-        <span>Quero receber avisos por SMS.</span>
+        <span>Quero receber notificações por SMS.</span>
       </label>
       {erros.geral && <p role="alert" className="mb-4 text-base text-perigo">{erros.geral}</p>}
       {salvo && !alterado && <p role="status" className="mb-4 text-base text-sadio">Alterações salvas.</p>}
