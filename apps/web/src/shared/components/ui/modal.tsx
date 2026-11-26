@@ -1,15 +1,18 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { cn } from '@/shared/lib/cn.ts'
 
 export function Modal({
   open,
   title,
   onClose,
   children,
+  className,
 }: {
   open: boolean
   title: string
   onClose: () => void
   children: ReactNode
+  className?: string
 }) {
   const ref = useRef<HTMLDialogElement>(null)
 
@@ -24,7 +27,7 @@ export function Modal({
     <dialog
       ref={ref}
       aria-labelledby="modal-titulo"
-      className="t-resize"
+      className={cn('t-resize', className)}
       onClose={onClose}
     >
       <h2 id="modal-titulo" className="mb-4 text-xl">

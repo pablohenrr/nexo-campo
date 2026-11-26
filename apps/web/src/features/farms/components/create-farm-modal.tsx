@@ -1,56 +1,83 @@
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { criarFazenda } from '@/features/farms/api.ts'
-import type { Fazenda } from '@/features/farms/types/index.ts'
+import { Search, Trash2, Undo2 } from 'lucide-react'
+import { atualizarFazenda, criarFazenda } from '@/features/farms/api.ts'
+import { buscaDisponivel, buscarEndereco, type ResultadoEndereco } from '@/features/farms/geocoding.ts'
+import { FarmOutlineMap, type Destino } from '@/features/farms/components/farm-outline-map.tsx'
+import type { Coordenada, Fazenda, FazendaRequest } from '@/features/farms/types/index.ts'
 import { ApiError } from '@/shared/lib/api.ts'
 import { Button } from '@/shared/components/ui/button.tsx'
 import { Field, TextInput } from '@/shared/components/ui/field.tsx'
 import { Modal } from '@/shared/components/ui/modal.tsx'
 
+const minimoPinos = 3
+
+/**
+ * Cadastro e edição da fazenda. O contorno marcado com pinos é obrigatório: o backend calcula
+ * o centro e a área a partir dele. A busca de endereço só move o mapa.
+ */
 export function CreateFarmModal({
   open,
   onClose,
   onCreated,
+  fazenda,
 }: {
   open: boolean
   onClose: () => void
   onCreated: (fazenda: Fazenda) => void
+  /** Quando informada, a tela edita esta fazenda em vez de criar uma nova. */
+  fazenda?: Fazenda
+}) {
+  return (
+    <Modal
+      open={open}
+      title={fazenda ? 'Editar fazenda' : 'Nova fazenda'}
+      className="!w-[min(64rem,calc(100%-2rem))] max-h-[calc(100dvh-2rem)]"
+      onClose={onClose}
+    >
+      {/* Remonta a cada abertura para começar do estado salvo. */}
+      {open && <Formulario key={fazenda?.id ?? 'nova'} fazenda={fazenda} onClose={onClose} onSaved={onCreated} />}
+    </Modal>
+  )
+}
+
+function Formulario({
+  fazenda,
+  onClose,
+  onSaved,
+}: {
+  fazenda?: Fazenda
+  onClose: () => void
+  onSaved: (fazenda: Fazenda) => void
 }) {
   const queryClient = useQueryClient()
-  const [nome, setNome] = useState('')
-  const [descricao, setDescricao] = useState('')
-  const [municipio, setMunicipio] = useState('')
-  const [estado, setEstado] = useState('')
-  const [area, setArea] = useState('')
-  const [latitude, setLatitude] = useState('')
-  const [longitude, setLongitude] = useState('')
+  const [nome, setNome] = useState(fazenda?.nome ?? '')
+  const [descricao, setDescricao] = useState(fazenda?.descricao ?? '')
+  const [municipio, setMunicipio] = useState(fazenda?.municipio ?? '')
+  const [estado, setEstado] = useState(fazenda?.estado ?? '')
+  const [pinos, setPinos] = useState<Coordenada[]>(fazenda?.contorno ?? [])
   const [erro, setErro] = useState('')
+  const [destino, setDestino] = useState<Destino | null>(() =>
+    !fazenda?.contorno?.length && fazenda?.latitude != null && fazenda.longitude != null
+      ? { latitude: fazenda.latitude, longitude: fazenda.longitude, limites: null }
+      : null,
+  )
 
-  const mutation = useMutation({
-    mutationFn: criarFazenda,
-    onSuccess: async (fazenda) => {
+  const salvar = useMutation({
+    mutationFn: (body: FazendaRequest) => (fazenda ? atualizarFazenda(fazenda.id, body) : criarFazenda(body)),
+    onSuccess: async (salva) => {
       await queryClient.invalidateQueries({ queryKey: ['fazendas'] })
-      limpar()
-      onCreated(fazenda)
+      onSaved(salva)
     },
     onError: (error) => {
-      setErro(error instanceof ApiError ? error.message : 'Não foi possível criar a fazenda.')
+      setErro(error instanceof ApiError ? error.message : 'Não foi possível salvar a fazenda.')
     },
   })
-
-  function limpar() {
-    setNome('')
-    setDescricao('')
-    setMunicipio('')
-    setEstado('')
-    setArea('')
-    setLatitude('')
-    setLongitude('')
-    setErro('')
-  }
+  const salvando = salvar.isPending
 
   function onSubmit(event: FormEvent) {
     event.preventDefault()
+    if (salvando) return
     setErro('')
     if (!nome.trim()) {
       setErro('Dê um nome para a fazenda.')
@@ -61,71 +88,166 @@ export function CreateFarmModal({
       setErro('O estado usa duas letras, como PR.')
       return
     }
-    const areaTotal = lerNumero(area)
-    const lat = lerNumero(latitude)
-    const lng = lerNumero(longitude)
-    if (Number.isNaN(areaTotal) || Number.isNaN(lat) || Number.isNaN(lng)) {
-      setErro('Use números nas áreas e nas coordenadas.')
+    if (pinos.length < minimoPinos) {
+      setErro(`Marque pelo menos ${minimoPinos} cantos da fazenda no mapa.`)
       return
     }
-    mutation.mutate({
+    salvar.mutate({
       nome: nome.trim(),
       descricao: descricao.trim() || null,
       municipio: municipio.trim() || null,
       estado: uf || null,
-      areaTotalHectares: areaTotal,
-      latitude: lat,
-      longitude: lng,
+      contorno: pinos,
     })
   }
 
+  const faltam = Math.max(0, minimoPinos - pinos.length)
+
   return (
-    <Modal
-      open={open}
-      title="Nova fazenda"
-      onClose={() => {
-        if (!mutation.isPending) onClose()
-      }}
-    >
-      <form onSubmit={onSubmit} noValidate>
-        <Field label="Nome" error={!nome.trim() ? erro : undefined}>
-          <TextInput value={nome} onChange={(event) => setNome(event.target.value)} />
-        </Field>
-        <Field label="Descrição">
-          <TextInput value={descricao} onChange={(event) => setDescricao(event.target.value)} />
+    <form onSubmit={onSubmit} noValidate className="grid gap-6 lg:grid-cols-[18rem_1fr]">
+      <div>
+        <Field label="Nome">
+          <TextInput value={nome} disabled={salvando} onChange={(event) => setNome(event.target.value)} />
         </Field>
         <Field label="Município">
-          <TextInput value={municipio} onChange={(event) => setMunicipio(event.target.value)} />
+          <TextInput value={municipio} disabled={salvando} onChange={(event) => setMunicipio(event.target.value)} />
         </Field>
         <Field label="Estado">
-          <TextInput value={estado} maxLength={2} onChange={(event) => setEstado(event.target.value)} />
+          <TextInput value={estado} maxLength={2} disabled={salvando} onChange={(event) => setEstado(event.target.value)} />
         </Field>
-        <Field label="Área em hectares">
-          <TextInput inputMode="decimal" value={area} onChange={(event) => setArea(event.target.value)} />
+        <Field label="Descrição">
+          <TextInput value={descricao} disabled={salvando} onChange={(event) => setDescricao(event.target.value)} />
         </Field>
-        <Field label="Latitude">
-          <TextInput inputMode="decimal" value={latitude} onChange={(event) => setLatitude(event.target.value)} />
-        </Field>
-        <Field label="Longitude">
-          <TextInput inputMode="decimal" value={longitude} onChange={(event) => setLongitude(event.target.value)} />
-        </Field>
-        {erro && nome.trim() && <p className="mb-4 text-base text-perigo">{erro}</p>}
-        <div className="flex gap-2">
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? 'Salvando…' : 'Criar fazenda'}
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-3">
+        {buscaDisponivel && <BuscaEndereco onEscolher={setDestino} desabilitado={salvando} />}
+        <p className="text-base text-tinta">
+          Clique no mapa para marcar cada canto da fazenda, na ordem do contorno. Arraste um pino para corrigir.
+        </p>
+        <div className="h-[22rem] lg:h-[28rem]">
+          <FarmOutlineMap
+            pinos={pinos}
+            destino={destino}
+            desabilitado={salvando}
+            onAdicionar={(pino) => setPinos((atual) => [...atual, pino])}
+            onMover={(indice, pino) => setPinos((atual) => atual.map((item, i) => (i === indice ? pino : item)))}
+          />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="mr-auto text-base text-nevoa" aria-live="polite">
+            {pinos.length === 0
+              ? 'Nenhum canto marcado.'
+              : faltam > 0
+                ? `${pinos.length} ${pinos.length === 1 ? 'canto marcado' : 'cantos marcados'}. Faltam ${faltam}.`
+                : `${pinos.length} cantos marcados. Contorno fechado.`}
+          </span>
+          <Button
+            variant="quiet"
+            className="gap-2"
+            disabled={salvando || pinos.length === 0}
+            onClick={() => setPinos((atual) => atual.slice(0, -1))}
+          >
+            <Undo2 aria-hidden="true" size={18} />
+            Desfazer
           </Button>
-          <Button type="button" variant="quiet" onClick={onClose} disabled={mutation.isPending}>
+          <Button variant="quiet" className="gap-2" disabled={salvando || pinos.length === 0} onClick={() => setPinos([])}>
+            <Trash2 aria-hidden="true" size={18} />
+            Limpar
+          </Button>
+        </div>
+
+        {erro && (
+          <p role="alert" className="text-base text-perigo">
+            {erro}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Button type="submit" disabled={salvando || pinos.length < minimoPinos}>
+            {salvando ? 'Salvando…' : fazenda ? 'Salvar alterações' : 'Cadastrar fazenda'}
+          </Button>
+          <Button variant="quiet" onClick={onClose} disabled={salvando}>
             Cancelar
           </Button>
         </div>
-      </form>
-    </Modal>
+      </div>
+    </form>
   )
 }
 
-function lerNumero(value: string): number | null {
-  const texto = value.trim().replace(',', '.')
-  if (!texto) return null
-  const numero = Number(texto)
-  return Number.isFinite(numero) ? numero : Number.NaN
+type EstadoBusca =
+  | { fase: 'parada' }
+  | { fase: 'buscando' }
+  | { fase: 'resultados'; itens: ResultadoEndereco[] }
+  | { fase: 'falhou' }
+
+function BuscaEndereco({ onEscolher, desabilitado }: { onEscolher: (destino: Destino) => void; desabilitado: boolean }) {
+  const [texto, setTexto] = useState('')
+  const [busca, setBusca] = useState<EstadoBusca>({ fase: 'parada' })
+
+  async function buscar() {
+    if (!texto.trim() || busca.fase === 'buscando') return
+    setBusca({ fase: 'buscando' })
+    try {
+      setBusca({ fase: 'resultados', itens: await buscarEndereco(texto, AbortSignal.timeout(8000)) })
+    } catch {
+      setBusca({ fase: 'falhou' })
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <TextInput
+            aria-label="Buscar endereço (opcional)"
+            placeholder="Buscar endereço (opcional)"
+            value={texto}
+            disabled={desabilitado}
+            onChange={(event) => setTexto(event.target.value)}
+            onKeyDown={(event) => {
+              // Enter busca o endereço em vez de enviar o cadastro.
+              if (event.key === 'Enter') {
+                event.preventDefault()
+                void buscar()
+              }
+            }}
+          />
+        </div>
+        <Button
+          variant="quiet"
+          className="gap-2"
+          disabled={desabilitado || !texto.trim() || busca.fase === 'buscando'}
+          onClick={() => void buscar()}
+        >
+          <Search aria-hidden="true" size={18} />
+          {busca.fase === 'buscando' ? 'Buscando…' : 'Buscar'}
+        </Button>
+      </div>
+      {busca.fase === 'falhou' && (
+        <p className="mt-2 text-base text-perigo">A busca falhou. Tente de novo ou navegue pelo mapa.</p>
+      )}
+      {busca.fase === 'resultados' && busca.itens.length === 0 && (
+        <p className="mt-2 text-base text-nevoa">Nenhum endereço encontrado. Navegue pelo mapa até a fazenda.</p>
+      )}
+      {busca.fase === 'resultados' && busca.itens.length > 0 && (
+        <ul className="mt-2 divide-y divide-linha rounded-controle border border-linha">
+          {busca.itens.map((item) => (
+            <li key={item.id}>
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-base text-tinta hover:bg-orvalho"
+                onClick={() => {
+                  onEscolher({ longitude: item.longitude, latitude: item.latitude, limites: item.limites })
+                  setBusca({ fase: 'parada' })
+                }}
+              >
+                {item.nome}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }

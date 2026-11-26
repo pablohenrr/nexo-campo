@@ -1,0 +1,18 @@
+.farm-outline-pin {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 2px solid #fff;
+  border-radius: 9999px;
+  background: #0f291e;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.35);
+  cursor: grab;
+}
+
+.farm-outline-pin:active {
+  cursor: grabbing;
+}

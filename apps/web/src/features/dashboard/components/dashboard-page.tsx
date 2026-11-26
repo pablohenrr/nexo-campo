@@ -29,6 +29,7 @@ export function DashboardPage() {
   const wide = useWide()
   const [state, dispatch] = useReducer(reduzir, estadoInicial)
   const [novaFazenda, setNovaFazenda] = useState(false)
+  const [editarFazenda, setEditarFazenda] = useState(false)
   const [erroAcao, setErroAcao] = useState('')
   const [painelAberto, setPainelAberto] = useState(false)
   const fazendas = useQuery({ queryKey: ['fazendas'], queryFn: listarFazendas })
@@ -151,7 +152,7 @@ export function DashboardPage() {
         <h1 className="text-4xl">Fazendas</h1>
         <p className="mt-4 text-lg text-tinta">Nenhuma fazenda cadastrada.</p>
         <Button className="mt-4" onClick={() => setNovaFazenda(true)}>
-          Criar fazenda
+          Cadastrar fazenda
         </Button>
         <CreateFarmModal
           open={novaFazenda}
@@ -233,6 +234,7 @@ export function DashboardPage() {
             setParams({ fazenda: id })
           }}
           onAdicionar={() => setNovaFazenda(true)}
+          onEditar={() => setEditarFazenda(true)}
           onRegistrar={() => {
             setErroAcao('')
             if (!wide) dispatch({ type: 'ver-feed' })
@@ -361,6 +363,12 @@ export function DashboardPage() {
           setNovaFazenda(false)
           setParams({ fazenda: criada.id })
         }}
+      />
+      <CreateFarmModal
+        open={editarFazenda}
+        fazenda={fazenda}
+        onClose={() => setEditarFazenda(false)}
+        onCreated={() => setEditarFazenda(false)}
       />
     </div>
   )

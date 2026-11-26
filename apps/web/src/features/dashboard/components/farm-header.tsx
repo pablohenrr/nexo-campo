@@ -12,6 +12,7 @@ export function FarmHeader({
   alertas,
   onFazenda,
   onAdicionar,
+  onEditar,
   onRegistrar,
   onDesenhar,
   desenhando,
@@ -23,6 +24,7 @@ export function FarmHeader({
   alertas: number
   onFazenda: (id: string) => void
   onAdicionar: () => void
+  onEditar: () => void
   onRegistrar: () => void
   onDesenhar: () => void
   desenhando: boolean
@@ -43,6 +45,9 @@ export function FarmHeader({
           <Button onClick={onRegistrar}>Registrar</Button>
           <Button variant="quiet" onClick={onDesenhar} disabled={desenhando}>
             Desenhar talhão
+          </Button>
+          <Button variant="quiet" onClick={onEditar}>
+            Editar área
           </Button>
         </div>
       </div>
@@ -70,7 +75,7 @@ export function FarmHeader({
         )}
         <Button variant="quiet" className="w-full gap-2" onClick={onAdicionar}>
           <Plus aria-hidden="true" size={18} />
-          Adicionar fazenda
+          Cadastrar fazenda
         </Button>
       </div>
       <div className="t-horizonte mt-8" aria-hidden="true" />
