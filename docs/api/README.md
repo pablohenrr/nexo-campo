@@ -46,6 +46,7 @@ quando o perfil `dev` está ativo.
 | PUT | `/api/usuarios/me/contato` | JWT |
 | POST | `/api/fazendas` | JWT |
 | GET | `/api/fazendas` | JWT |
+| PUT | `/api/fazendas/{fazendaId}` | JWT |
 | POST | `/api/fazendas/{fazendaId}/talhoes` | JWT |
 | GET | `/api/fazendas/{fazendaId}/talhoes` | JWT |
 | POST | `/api/talhoes/{talhaoId}/atividades` | JWT |
@@ -60,6 +61,38 @@ quando o perfil `dev` está ativo.
 
 A ingestão com IA (mensagens de texto, áudio e foto que viram atividades e ocorrências) está
 descrita em [ingestao-ia.md](ingestao-ia.md).
+
+### Cadastro e edição da fazenda
+
+`POST /api/fazendas` e `PUT /api/fazendas/{fazendaId}` recebem o contorno da propriedade
+inteira, marcado com pinos no mapa:
+
+```json
+{
+  "nome": "Fazenda Boa Vista",
+  "descricao": null,
+  "municipio": "Londrina",
+  "estado": "PR",
+  "contorno": [
+    { "latitude": -23.300, "longitude": -51.170 },
+    { "latitude": -23.300, "longitude": -51.160 },
+    { "latitude": -23.310, "longitude": -51.160 },
+    { "latitude": -23.310, "longitude": -51.170 }
+  ]
+}
+```
+
+- `contorno` é obrigatório, com 3 a 500 pinos na ordem em que formam o contorno. Não repita o
+  primeiro pino no fim; o backend fecha o polígono. Cliques repetidos no mesmo ponto são ignorados.
+- Linhas que se cruzam, pinos todos alinhados ou coordenadas fora dos limites resultam em 400,
+  sem gravar nada.
+- `latitude`, `longitude` e `areaTotalHectares` não são enviados: o backend calcula. O centro
+  (centroide do contorno) é gravado em `fazenda.latitude`/`fazenda.longitude`, que é o ponto
+  usado pelos alertas climáticos. O endereço pesquisado no mapa não é enviado nem usado como centro.
+- A resposta traz os campos da fazenda, o centro calculado, a área e o `contorno` na mesma ordem.
+  Fazendas antigas, sem contorno, vêm com `contorno: null` e mantêm latitude/longitude.
+- `PUT` de fazenda inexistente ou de outra conta responde 400 `Fazenda não encontrada`, como no
+  cadastro de talhões.
 
 O campo `limiteWkt` dos talhões deve ser um `POLYGON` válido no SRID 4326.
 

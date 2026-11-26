@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import org.locationtech.jts.geom.Polygon;
 
 @Entity
 @Table(name = "fazenda")
@@ -38,6 +39,9 @@ public class Farm {
 
     @Column(precision = 10, scale = 7)
     private BigDecimal longitude;
+
+    @Column(name = "limite", columnDefinition = "geometry(Polygon,4326)")
+    private Polygon boundary;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
@@ -73,4 +77,6 @@ public class Farm {
     public void setLatitude(BigDecimal latitude) { this.latitude = latitude; }
     public BigDecimal getLongitude() { return longitude; }
     public void setLongitude(BigDecimal longitude) { this.longitude = longitude; }
+    public Polygon getBoundary() { return boundary; }
+    public void setBoundary(Polygon boundary) { this.boundary = boundary; }
 }
