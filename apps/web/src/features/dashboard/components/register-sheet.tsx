@@ -45,10 +45,10 @@ export function RegisterSheet({
   onCancelar: () => void
 }) {
   return (
-    <section aria-label="Registrar" className="t-panel-reveal mt-8 rounded-controle border border-linha p-5" data-open="true">
+    <section aria-label="Registrar">
       {etapa === 'escolhendo' && (
         <div className="flex flex-col gap-2">
-          <h2 className="mb-2 text-lg">O que você vai registrar?</h2>
+          <p className="mb-2 text-base text-nevoa">O que você vai registrar?</p>
           <Button onClick={() => onEscolher('atividade')}>Atividade</Button>
           <Button onClick={() => onEscolher('ocorrencia')}>Ocorrência</Button>
           <Button onClick={() => onEscolher('mensagem')}>Relato de voz ou foto</Button>
@@ -64,10 +64,10 @@ export function RegisterSheet({
         <EscolhaTalhao talhoes={talhoes} onTalhao={onTalhao} onDesenhar={() => onEscolher('talhao')} onCancelar={onCancelar} />
       )}
       {etapa === 'preenchendo' && preenchimento === 'atividade' && talhaoId && (
-        <AtividadeForm talhao={nome(talhoes, talhaoId)} enviando={enviando} onSubmit={onAtividade} onCancelar={onCancelar} />
+        <AtividadeForm enviando={enviando} onSubmit={onAtividade} onCancelar={onCancelar} />
       )}
       {etapa === 'preenchendo' && preenchimento === 'ocorrencia' && talhaoId && (
-        <OcorrenciaForm talhao={nome(talhoes, talhaoId)} enviando={enviando} onSubmit={onOcorrencia} onCancelar={onCancelar} />
+        <OcorrenciaForm enviando={enviando} onSubmit={onOcorrencia} onCancelar={onCancelar} />
       )}
       {etapa === 'preenchendo' && preenchimento === 'mensagem' && (
         <MensagemForm enviando={enviando} onSubmit={onMensagem} onCancelar={onCancelar} />
@@ -90,7 +90,6 @@ function EscolhaTalhao({
 }) {
   return (
     <div>
-      <h2 className="mb-3 text-lg">Em qual talhão?</h2>
       {talhoes.length === 0 && <p className="mb-3 text-tinta">Esta fazenda ainda não tem talhão.</p>}
       <ul className="flex flex-col gap-2">
         {talhoes.map((talhao) => (
@@ -112,12 +111,10 @@ function EscolhaTalhao({
 }
 
 function AtividadeForm({
-  talhao,
   enviando,
   onSubmit,
   onCancelar,
 }: {
-  talhao: string
   enviando: boolean
   onSubmit: (body: AtividadeRequest) => void
   onCancelar: () => void
@@ -152,7 +149,6 @@ function AtividadeForm({
 
   return (
     <form onSubmit={enviar} noValidate>
-      <h2 className="mb-3 text-lg">Atividade em {talhao}</h2>
       <Field label="Tipo">
         <select className={controle} value={tipo} onChange={(event) => setTipo(event.target.value as typeof tipo)}>
           {TIPOS_ATIVIDADE.map((item) => (
@@ -181,12 +177,10 @@ function AtividadeForm({
 }
 
 function OcorrenciaForm({
-  talhao,
   enviando,
   onSubmit,
   onCancelar,
 }: {
-  talhao: string
   enviando: boolean
   onSubmit: (body: OcorrenciaRequest) => void
   onCancelar: () => void
@@ -219,7 +213,6 @@ function OcorrenciaForm({
 
   return (
     <form onSubmit={enviar} noValidate>
-      <h2 className="mb-3 text-lg">Ocorrência em {talhao}</h2>
       <Field label="Categoria">
         <select className={controle} value={categoria} onChange={(event) => setCategoria(event.target.value as CategoriaOcorrencia)}>
           {CATEGORIAS_OCORRENCIA.map((item) => (
@@ -293,7 +286,6 @@ function MensagemForm({
 
   return (
     <form onSubmit={enviar} noValidate>
-      <h2 className="mb-3 text-lg">Relato para a fazenda</h2>
       <Field label="Texto">
         <Area value={texto} onChange={setTexto} />
       </Field>
@@ -362,9 +354,6 @@ function Area({ value, onChange }: { value: string; onChange: (valor: string) =>
   )
 }
 
-function nome(talhoes: Talhao[], id: string): string {
-  return talhoes.find((item) => item.id === id)?.nome ?? 'talhão'
-}
 
 function numeroOuNulo(texto: string): number | null {
   const limpo = texto.trim().replace(',', '.')

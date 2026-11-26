@@ -275,31 +275,63 @@ function linhaDaLatitude(latitude: number, zoom: number): number {
   return ((1 - mercator / Math.PI) / 2) * 2 ** zoom
 }
 
+/**
+ * Monta a textura da maquete com os tiles de satélite do MapTiler, os mesmos do modo Satélite.
+ * A API de mapas estáticos não entra no plano gratuito e respondia erro, deixando a maquete cinza.
+ */
 async function baixarSatelite(quadro: Quadro, chave: string, signal: AbortSignal): Promise<HTMLCanvasElement | null> {
-  const caixa = [quadro.oeste, quadro.sul, quadro.leste, quadro.norte].map((valor) => valor.toFixed(6)).join(',')
-  for (const mapa of ['satellite', 'satellite-v2']) {
-    try {
-      const url = new URL(`https://api.maptiler.com/maps/${mapa}/static/${caixa}/768x768.jpg`)
+  const zoom = zoomDaImagem(quadro)
+  const x0 = Math.floor(colunaDoLongitude(quadro.oeste, zoom))
+  const x1 = Math.floor(colunaDoLongitude(quadro.leste, zoom))
+  const y0 = Math.floor(linhaDaLatitude(quadro.norte, zoom))
+  const y1 = Math.floor(linhaDaLatitude(quadro.sul, zoom))
+  const lado = 512
+
+  const pedidos: Array<Promise<{ x: number; y: number; bitmap: ImageBitmap } | null>> = []
+  for (let y = y0; y <= y1; y += 1) {
+    for (let x = x0; x <= x1; x += 1) {
+      const url = new URL(`https://api.maptiler.com/tiles/satellite-v2/${zoom}/${x}/${y}.jpg`)
       url.searchParams.set('key', chave)
-      const resposta = await fetch(url, { signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]) })
-      if (!resposta.ok) continue
-      const bitmap = await createImageBitmap(await resposta.blob())
-      const tela = document.createElement('canvas')
-      tela.width = bitmap.width
-      tela.height = bitmap.height
-      const contexto = tela.getContext('2d')
-      if (!contexto) {
-        bitmap.close()
-        continue
-      }
-      contexto.drawImage(bitmap, 0, 0)
-      bitmap.close()
-      return tela
-    } catch {
-      continue
+      pedidos.push(
+        fetch(url, { signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]) })
+          .then(async (resposta) => (resposta.ok ? { x, y, bitmap: await createImageBitmap(await resposta.blob()) } : null))
+          .catch(() => null),
+      )
     }
   }
-  return null
+  const tiles = (await Promise.all(pedidos)).flatMap((tile) => (tile ? [tile] : []))
+  if (!tiles.length) return null
+
+  // Recorta exatamente a caixa da maquete dentro do mosaico de tiles.
+  const esquerda = (colunaDoLongitude(quadro.oeste, zoom) - x0) * lado
+  const direita = (colunaDoLongitude(quadro.leste, zoom) - x0) * lado
+  const topo = (linhaDaLatitude(quadro.norte, zoom) - y0) * lado
+  const base = (linhaDaLatitude(quadro.sul, zoom) - y0) * lado
+  const escala = Math.min(1, 1536 / Math.max(direita - esquerda, base - topo))
+  const tela = document.createElement('canvas')
+  tela.width = Math.max(1, Math.round((direita - esquerda) * escala))
+  tela.height = Math.max(1, Math.round((base - topo) * escala))
+  const contexto = tela.getContext('2d')
+  if (!contexto) {
+    tiles.forEach((tile) => tile.bitmap.close())
+    return null
+  }
+  contexto.scale(escala, escala)
+  contexto.translate(-esquerda, -topo)
+  for (const tile of tiles) {
+    contexto.drawImage(tile.bitmap, (tile.x - x0) * lado, (tile.y - y0) * lado, lado, lado)
+    tile.bitmap.close()
+  }
+  return tiles.length === (x1 - x0 + 1) * (y1 - y0 + 1) ? tela : null
+}
+
+function zoomDaImagem(quadro: Quadro): number {
+  for (let zoom = 17; zoom >= 0; zoom -= 1) {
+    const colunas = Math.floor(colunaDoLongitude(quadro.leste, zoom)) - Math.floor(colunaDoLongitude(quadro.oeste, zoom)) + 1
+    const linhas = Math.floor(linhaDaLatitude(quadro.sul, zoom)) - Math.floor(linhaDaLatitude(quadro.norte, zoom)) + 1
+    if (colunas * linhas <= 9 || zoom === 0) return zoom
+  }
+  return 0
 }
 
 function limitar(valor: number, minimo: number, maximo: number): number {

@@ -8,3 +8,7 @@ export function listarFazendas() {
 export function criarFazenda(body: FazendaRequest) {
   return api<Fazenda>('/api/fazendas', { method: 'POST', body: JSON.stringify(body) })
 }
+
+export function atualizarFazenda(id: string, body: FazendaRequest) {
+  return api<Fazenda>(`/api/fazendas/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(body) })
+}

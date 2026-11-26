@@ -24,6 +24,7 @@ export function MapPane({
   center,
   fitKey,
   visivel,
+  farmOutline,
 }: {
   features: PlotFeature[]
   selectedId: string | null
@@ -43,6 +44,7 @@ export function MapPane({
   center: { latitude: number; longitude: number } | null
   fitKey: string
   visivel: boolean
+  farmOutline?: Array<{ latitude: number; longitude: number }> | null
 }) {
   return (
     <div className="relative h-full min-h-80">
@@ -58,6 +60,7 @@ export function MapPane({
         center={center}
         fitKey={fitKey}
         visivel={visivel}
+        farmOutline={farmOutline}
       />
       {drawing && (
         <div className="absolute inset-x-3 bottom-3 z-10 rounded-controle border border-linha bg-cerca p-4">
@@ -126,8 +129,14 @@ function PlotForm({
   }
 
   return (
-    <form onSubmit={enviar} className="absolute inset-x-3 bottom-3 z-10 rounded-controle border border-linha bg-cerca p-4" noValidate>
+    // Fica abaixo do seletor de modo (top-4 + 3rem) e rola quando o painel é baixo.
+    <form
+      onSubmit={enviar}
+      className="absolute inset-x-3 bottom-3 z-30 max-h-[calc(100%-6.5rem)] overflow-y-auto rounded-controle border border-linha bg-cerca p-4 shadow-md"
+      noValidate
+    >
       <h2 className="mb-3 text-lg">Talhão com {cantos} cantos</h2>
+      <div className="grid gap-x-4 sm:grid-cols-2">
       <Field label="Nome" error={!nome.trim() ? local : undefined}>
         <TextInput value={nome} onChange={(event) => setNome(event.target.value)} />
       </Field>
@@ -147,6 +156,7 @@ function PlotForm({
           <option value="INATIVO">Inativo</option>
         </select>
       </Field>
+      </div>
       {(local && nome.trim()) || erro ? <p className="mb-4 text-base text-perigo">{erro || local}</p> : null}
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={saving}>
