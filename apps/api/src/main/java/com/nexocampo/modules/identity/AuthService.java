@@ -13,11 +13,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final PhoneNumberService phoneNumberService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService,
+            PhoneNumberService phoneNumberService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.phoneNumberService = phoneNumberService;
     }
 
     @Transactional
@@ -29,6 +35,9 @@ public class AuthService {
         user.setName(request.nome());
         user.setEmail(request.email());
         user.setPasswordHash(passwordEncoder.encode(request.senha()));
+        user.setPhoneNumber(phoneNumberService.normalizeForSms(
+                request.telefone(), request.notificacoesSmsAtivas()));
+        user.setSmsNotificationsEnabled(request.notificacoesSmsAtivas());
         userRepository.save(user);
         return new AuthResponse(jwtService.generateToken(user), user.getId(), user.getName(), user.getEmail(), user.getRole());
     }
@@ -43,7 +52,9 @@ public class AuthService {
     public record RegisterRequest(
             @NotBlank String nome,
             @Email @NotBlank String email,
-            @NotBlank @Size(min = 8, max = 100) String senha) {}
+            @NotBlank @Size(min = 8, max = 100) String senha,
+            @Size(max = 40) String telefone,
+            boolean notificacoesSmsAtivas) {}
 
     public record LoginRequest(@Email @NotBlank String email, @NotBlank String senha) {}
 
