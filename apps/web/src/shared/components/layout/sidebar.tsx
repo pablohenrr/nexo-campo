@@ -1,11 +1,11 @@
-import { Bug, Image, LandPlot, MessageSquare, Sprout } from 'lucide-react'
+import { CloudRain, Image, LandPlot, MessageSquare, Sprout } from 'lucide-react'
 import { NavLink } from 'react-router'
 import { cn } from '@/shared/lib/cn.ts'
 
 export const areas = [
   { to: '/', label: 'Fazenda', icon: LandPlot, end: true },
   { to: '/atividades', label: 'Atividades', icon: Sprout, end: false },
-  { to: '/alertas', label: 'Alertas', icon: Bug, end: false },
+  { to: '/alertas', label: 'Alertas', icon: CloudRain, end: false },
   { to: '/evidencias', label: 'Evidências', icon: Image, end: false },
   { to: '/mensagens', label: 'Mensagens', icon: MessageSquare, end: false },
 ]

@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface FarmRepository extends JpaRepository<Farm, UUID> {
     List<Farm> findAllByOwnerIdOrderByName(UUID ownerId);
     java.util.Optional<Farm> findByIdAndOwnerId(UUID farmId, UUID ownerId);
+    List<Farm> findByLatitudeIsNotNullAndLongitudeIsNotNull();
 }

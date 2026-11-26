@@ -1,5 +1,6 @@
 import { Menu } from 'lucide-react'
 import { NavLink } from 'react-router'
+import { WeatherAlertBell } from '@/features/weather/components/weather-alert-bell.tsx'
 import { AccountMenu } from '@/shared/components/layout/account-menu.tsx'
 import { areas } from '@/shared/components/layout/sidebar.tsx'
 import { cn } from '@/shared/lib/cn.ts'
@@ -46,7 +47,8 @@ export function Header({
           ))}
         </ul>
       </nav>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
+        <WeatherAlertBell />
         <AccountMenu sessao={sessao} />
       </div>
     </header>
