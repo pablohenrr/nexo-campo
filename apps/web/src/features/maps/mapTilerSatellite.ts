@@ -12,7 +12,7 @@ export function createMapTilerTileJsonUrl(apiKey?: string): string | undefined {
 
 export async function loadMapTilerSatellite(tileJsonUrl: string): Promise<RasterSourceSpecification> {
   const response = await fetch(tileJsonUrl, { signal: AbortSignal.timeout(5000) });
-  if (!response.ok) throw new Error('MapTiler indisponível.');
+  if (!response.ok) throw new Error(`MapTiler indisponível (HTTP ${response.status}).`);
 
   const { tiles, minzoom = 0, maxzoom = 22, attribution } = await response.json();
   if (!Array.isArray(tiles) || tiles.length === 0) throw new Error('MapTiler retornou uma fonte sem imagens.');
@@ -57,7 +57,7 @@ export function createMapTilerTerrainUrl(apiKey?: string): string | undefined {
 
 export async function loadMapTilerTerrain(tileJsonUrl: string): Promise<RasterDEMSourceSpecification> {
   const response = await fetch(tileJsonUrl, { signal: AbortSignal.timeout(5000) });
-  if (!response.ok) throw new Error('MapTiler indisponível.');
+  if (!response.ok) throw new Error(`MapTiler indisponível (HTTP ${response.status}).`);
 
   const { tiles, minzoom = 0, maxzoom = 12, attribution } = await response.json();
   if (!Array.isArray(tiles) || tiles.length === 0) throw new Error('MapTiler retornou uma fonte sem imagens.');

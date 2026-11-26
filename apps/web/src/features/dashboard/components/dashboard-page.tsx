@@ -21,6 +21,7 @@ import { ApiError } from '@/shared/lib/api.ts'
 import { hectares } from '@/shared/lib/format.ts'
 import { cn } from '@/shared/lib/cn.ts'
 import { Button } from '@/shared/components/ui/button.tsx'
+import { Modal } from '@/shared/components/ui/modal.tsx'
 
 export function DashboardPage() {
   const queryClient = useQueryClient()
@@ -176,6 +177,9 @@ export function DashboardPage() {
   const interacao = state.interacao
   const desenhando = interacao.etapa === 'desenhando'
   const nomeando = interacao.etapa === 'nomeando'
+  const registrando = interacao.etapa === 'escolhendo' || interacao.etapa === 'escolhendo-talhao' || interacao.etapa === 'preenchendo'
+  const talhaoDoRegistro = interacao.etapa === 'preenchendo' ? interacao.talhaoId : state.talhaoId
+  const tituloRegistro = tituloDoRegistro(interacao, lista.find((talhao) => talhao.id === talhaoDoRegistro)?.nome ?? null)
   const pontos = interacao.etapa === 'desenhando' || interacao.etapa === 'nomeando' ? interacao.pontos : []
   const vista = wide ? 'split' : state.vista
   const mapaVisivel = wide || state.vista === 'mapa'
@@ -219,8 +223,11 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="bg-cerca px-5 py-6 lg:mx-6 lg:mt-6 lg:rounded-controle">
+    // Telas largas: coluna lateral (cabeçalho + registros) e o mapa ocupando o resto da altura.
+    // Telas estreitas: a coluna "some" (contents) e volta o fluxo com abas Registros/Mapa.
+    <div className="flex h-full min-h-0 flex-col lg:grid lg:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)] lg:gap-4 lg:p-4">
+      <div className="contents lg:flex lg:min-h-0 lg:flex-col lg:gap-4">
+      <div className="bg-cerca px-5 py-6 lg:rounded-controle lg:px-5 lg:py-5">
         <FarmHeader
           fazenda={fazenda}
           fazendas={fazendas.data}
@@ -255,12 +262,11 @@ export function DashboardPage() {
           Mapa
         </Aba>
       </div>
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:p-6">
         <section
           aria-label="Feed da fazenda"
           data-vista={wide ? undefined : state.vista}
           className={cn(
-            't-vista min-h-0 overflow-auto bg-cerca px-5 py-6 [scrollbar-color:#3f4e3c_#e7efd8] lg:rounded-controle',
+            't-vista min-h-0 flex-1 overflow-auto bg-cerca px-5 py-6 [scrollbar-color:#3f4e3c_#e7efd8] lg:rounded-controle lg:py-5',
             vista === 'mapa' && 'hidden',
           )}
         >
@@ -279,35 +285,6 @@ export function DashboardPage() {
               </div>
             </div>
           )}
-          {(interacao.etapa === 'escolhendo' || interacao.etapa === 'escolhendo-talhao' || interacao.etapa === 'preenchendo') && (
-            <RegisterSheet
-              etapa={interacao.etapa}
-              preenchimento={interacao.etapa === 'preenchendo' ? interacao.registro : null}
-              talhaoId={interacao.etapa === 'preenchendo' ? interacao.talhaoId : state.talhaoId}
-              talhoes={lista}
-              enviando={enviando}
-              erro={erroAcao}
-              onEscolher={(registro) => {
-                setErroAcao('')
-                dispatch({ type: 'escolher-registro', registro })
-              }}
-              onTalhao={(talhaoId) => {
-                setErroAcao('')
-                revelar(talhaoId)
-                dispatch({ type: 'escolher-talhao', talhaoId })
-              }}
-              onAtividade={(body) => {
-                if (interacao.etapa !== 'preenchendo' || !interacao.talhaoId) return
-                atividade.mutate({ talhaoId: interacao.talhaoId, body })
-              }}
-              onOcorrencia={(body) => {
-                if (interacao.etapa !== 'preenchendo' || !interacao.talhaoId) return
-                ocorrencia.mutate({ talhaoId: interacao.talhaoId, body })
-              }}
-              onMensagem={(texto, arquivo) => relato.mutate({ texto, arquivo })}
-              onCancelar={cancelar}
-            />
-          )}
           <Timeline
             eventos={eventos}
             talhaoId={state.talhaoId}
@@ -320,9 +297,10 @@ export function DashboardPage() {
             }}
           />
         </section>
+      </div>
         <div
           data-vista={wide ? undefined : state.vista}
-          className={cn('t-vista min-h-0 lg:overflow-hidden lg:rounded-controle', vista === 'feed' && 'hidden')}
+          className={cn('t-vista min-h-0 flex-1 lg:h-full lg:overflow-hidden lg:rounded-controle', vista === 'feed' && 'hidden')}
         >
           <MapPane
             features={features}
@@ -352,10 +330,50 @@ export function DashboardPage() {
                 : null
             }
             fitKey={fitKey}
+            farmOutline={fazenda.contorno}
             visivel={mapaVisivel}
           />
         </div>
-      </div>
+      {/* Registro em modal central, como o cadastro de fazenda: mesmo fluxo e campos de antes. */}
+      <Modal
+        open={registrando}
+        title={tituloRegistro}
+        className="!w-[min(36rem,calc(100%-2rem))] max-h-[calc(100dvh-2rem)]"
+        onClose={() => {
+          // O diálogo também fecha ao trocar para o desenho ou depois de salvar; só cancela se ainda estava registrando.
+          if (registrando) cancelar()
+        }}
+      >
+        {registrando && (
+            <RegisterSheet
+              etapa={interacao.etapa}
+              preenchimento={interacao.etapa === 'preenchendo' ? interacao.registro : null}
+              talhaoId={interacao.etapa === 'preenchendo' ? interacao.talhaoId : state.talhaoId}
+              talhoes={lista}
+              enviando={enviando}
+              erro={erroAcao}
+              onEscolher={(registro) => {
+                setErroAcao('')
+                dispatch({ type: 'escolher-registro', registro })
+              }}
+              onTalhao={(talhaoId) => {
+                setErroAcao('')
+                revelar(talhaoId)
+                dispatch({ type: 'escolher-talhao', talhaoId })
+              }}
+              onAtividade={(body) => {
+                if (interacao.etapa !== 'preenchendo' || !interacao.talhaoId) return
+                atividade.mutate({ talhaoId: interacao.talhaoId, body })
+              }}
+              onOcorrencia={(body) => {
+                if (interacao.etapa !== 'preenchendo' || !interacao.talhaoId) return
+                ocorrencia.mutate({ talhaoId: interacao.talhaoId, body })
+              }}
+              onMensagem={(texto, arquivo) => relato.mutate({ texto, arquivo })}
+              onCancelar={cancelar}
+            />
+        )}
+      </Modal>
       <CreateFarmModal
         open={novaFazenda}
         onClose={() => setNovaFazenda(false)}
@@ -372,6 +390,17 @@ export function DashboardPage() {
       />
     </div>
   )
+}
+
+/** O título do modal diz em que passo e em qual talhão a pessoa está. */
+function tituloDoRegistro(interacao: { etapa: string; registro?: string }, talhao: string | null): string {
+  if (interacao.etapa === 'escolhendo-talhao') return 'Em qual talhão?'
+  if (interacao.etapa === 'preenchendo') {
+    if (interacao.registro === 'atividade') return talhao ? `Atividade em ${talhao}` : 'Nova atividade'
+    if (interacao.registro === 'ocorrencia') return talhao ? `Ocorrência em ${talhao}` : 'Nova ocorrência'
+    return 'Relato para a fazenda'
+  }
+  return talhao ? `Registrar em ${talhao}` : 'Registrar no talhão'
 }
 
 function Aba({ ativa, onClick, children }: { ativa: boolean; onClick: () => void; children: string }) {

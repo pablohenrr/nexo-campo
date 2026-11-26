@@ -12,6 +12,23 @@ const chaveMapa = import.meta.env.VITE_MAPTILER_KEY?.trim()
 
 export const buscaDisponivel = Boolean(chaveMapa)
 
+/** Erro do MapTiler com o status HTTP, para explicar a falha na tela. */
+export class MapTilerError extends Error {
+  status: number
+
+  constructor(status: number) {
+    super(motivoMapTiler(status))
+    this.status = status
+  }
+}
+
+export function motivoMapTiler(status: number): string {
+  if (status === 401 || status === 403) {
+    return `O MapTiler recusou a chave (HTTP ${status}). Confira se ela é válida e se aceita a origem ${window.location.origin}.`
+  }
+  return `O MapTiler não respondeu como esperado (HTTP ${status}).`
+}
+
 export async function buscarEndereco(texto: string, signal?: AbortSignal): Promise<ResultadoEndereco[]> {
   const consulta = texto.trim()
   if (!consulta || !chaveMapa) return []
@@ -20,7 +37,7 @@ export async function buscarEndereco(texto: string, signal?: AbortSignal): Promi
     `https://api.maptiler.com/geocoding/${encodeURIComponent(consulta)}.json?${query}`,
     { signal },
   )
-  if (!response.ok) throw new Error('Busca de endereço indisponível.')
+  if (!response.ok) throw new MapTilerError(response.status)
   const body = (await response.json()) as {
     features?: { id: string; place_name?: string; text?: string; center?: number[]; bbox?: number[] }[]
   }

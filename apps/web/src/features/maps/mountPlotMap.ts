@@ -1,4 +1,4 @@
-import type { Feature, FeatureCollection, Polygon } from 'geojson';
+import type { Feature, FeatureCollection, MultiLineString, Polygon, Position } from 'geojson';
 import type {
   ExpressionSpecification,
   FitBoundsOptions,
@@ -94,7 +94,8 @@ function setRasterOverlay(
   }
 
   if (enabled && source && !map.getLayer(id)) {
-    const before = map.getLayer(fillLayerId) ? fillLayerId : map.getLayer('nexo-field-fill') ? 'nexo-field-fill' : undefined;
+    // Imagem sempre por baixo: dos cantos da fazenda, se existirem, e dos talhões.
+    const before = [farmFill, fillLayerId, 'nexo-field-fill'].find((layer) => map.getLayer(layer));
     map.addLayer({ id, type: 'raster', source: id }, before);
   }
 
@@ -230,6 +231,73 @@ export function mountPlotMap(
 
 const fieldFill = 'nexo-field-fill';
 const fieldLine = 'nexo-field-line';
+const fieldCasing = 'nexo-field-casing';
+const farmSource = 'nexo-farm';
+const farmFill = 'nexo-farm-fill';
+const farmCornersSource = 'nexo-farm-corners';
+const farmCornersCasing = 'nexo-farm-corners-casing';
+const farmCorners = 'nexo-farm-corners-line';
+
+/** Fração de cada lado desenhada a partir do canto (cantoneiras da fazenda). */
+const cornerFraction = 0.18;
+
+function addFarmLayers(map: MapLibreMap): void {
+  map.addSource(farmSource, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addSource(farmCornersSource, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  // Área da fazenda bem suave; os talhões vêm por cima, mais fortes.
+  map.addLayer({
+    id: farmFill,
+    type: 'fill',
+    source: farmSource,
+    paint: { 'fill-color': '#FFFFFF', 'fill-opacity': 0.07 },
+  });
+  map.addLayer({
+    id: farmCornersCasing,
+    type: 'line',
+    source: farmCornersSource,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': '#0F291E', 'line-width': 6, 'line-opacity': 0.55 },
+  });
+  map.addLayer({
+    id: farmCorners,
+    type: 'line',
+    source: farmCornersSource,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: { 'line-color': '#F6F8F3', 'line-width': 3 },
+  });
+}
+
+/**
+ * Marca a fazenda só pelos cantos: em cada vértice, um trecho curto de cada lado.
+ * Fica legível no satélite sem competir com os talhões.
+ */
+export function setFarmOutline(map: MapLibreMap, outline: Array<{ latitude: number; longitude: number }> | null): void {
+  const area = map.getSource(farmSource) as GeoJSONSource | undefined;
+  const corners = map.getSource(farmCornersSource) as GeoJSONSource | undefined;
+  if (!area || !corners) return;
+  const ring: Position[] = (outline ?? []).map((point) => [point.longitude, point.latitude]);
+  if (ring.length < 3) {
+    area.setData({ type: 'FeatureCollection', features: [] });
+    corners.setData({ type: 'FeatureCollection', features: [] });
+    return;
+  }
+  area.setData({
+    type: 'Feature',
+    properties: {},
+    geometry: { type: 'Polygon', coordinates: [[...ring, ring[0]!]] },
+  });
+  const lines: Position[][] = ring.map((vertex, index) => {
+    const previous = ring[(index - 1 + ring.length) % ring.length]!;
+    const next = ring[(index + 1) % ring.length]!;
+    return [toward(vertex, previous), vertex, toward(vertex, next)];
+  });
+  const geometry: MultiLineString = { type: 'MultiLineString', coordinates: lines };
+  corners.setData({ type: 'Feature', properties: {}, geometry });
+}
+
+function toward(from: Position, to: Position): Position {
+  return [from[0]! + (to[0]! - from[0]!) * cornerFraction, from[1]! + (to[1]! - from[1]!) * cornerFraction];
+}
 const fillColor: ExpressionSpecification = [
   'match',
   ['coalesce', ['get', 'estado'], 'MONITORAMENTO'],
@@ -311,22 +379,36 @@ export function mountFieldMap(
       promoteId: 'talhaoId',
       data: { type: 'FeatureCollection', features: [] },
     });
+    addFarmLayers(map);
     map.addLayer({
       id: fieldFill,
       type: 'fill',
       source: sourceId,
       paint: {
         'fill-color': fillColor,
-        'fill-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 0.55, 0.38],
+        'fill-opacity': ['case', ['boolean', ['feature-state', 'selected'], false], 0.62, 0.48],
+      },
+    });
+    // Contorno do talhão em duas camadas (borda escura + linha clara) para aparecer no satélite e no mapa claro.
+    map.addLayer({
+      id: fieldCasing,
+      type: 'line',
+      source: sourceId,
+      layout: { 'line-join': 'round' },
+      paint: {
+        'line-color': '#0F291E',
+        'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 6, 4.5],
+        'line-opacity': 0.75,
       },
     });
     map.addLayer({
       id: fieldLine,
       type: 'line',
       source: sourceId,
+      layout: { 'line-join': 'round' },
       paint: {
-        'line-color': '#0F291E',
-        'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3.5, 1.5],
+        'line-color': ['case', ['boolean', ['feature-state', 'selected'], false], '#F7C948', '#FFFFFF'],
+        'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 3, 2],
       },
     });
     map.on('click', fieldFill, (event) => {

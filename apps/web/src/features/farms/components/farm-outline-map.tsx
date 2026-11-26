@@ -91,8 +91,13 @@ export function FarmOutlineMap({
         map.addSource(camadaSatelite, satelite)
         // Satélite abaixo do contorno, para enxergar cercas e estradas ao marcar os cantos.
         map.addLayer({ id: camadaSatelite, type: 'raster', source: camadaSatelite }, `${fonteContorno}-area`)
-      } catch {
-        setAviso('Imagem de satélite indisponível. Exibindo mapa-base.')
+      } catch (error) {
+        const status = Number(/HTTP (\d+)/.exec(error instanceof Error ? error.message : '')?.[1])
+        setAviso(
+          status === 401 || status === 403
+            ? `Satélite indisponível: o MapTiler recusou a chave (HTTP ${status}) para ${window.location.origin}.`
+            : 'Imagem de satélite indisponível. Exibindo mapa-base.',
+        )
       }
     })
     mapRef.current = map

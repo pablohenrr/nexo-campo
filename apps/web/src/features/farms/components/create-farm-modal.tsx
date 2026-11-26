@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Search, Trash2, Undo2 } from 'lucide-react'
 import { atualizarFazenda, criarFazenda } from '@/features/farms/api.ts'
-import { buscaDisponivel, buscarEndereco, type ResultadoEndereco } from '@/features/farms/geocoding.ts'
+import { buscaDisponivel, buscarEndereco, MapTilerError, type ResultadoEndereco } from '@/features/farms/geocoding.ts'
 import { FarmOutlineMap, type Destino } from '@/features/farms/components/farm-outline-map.tsx'
 import type { Coordenada, Fazenda, FazendaRequest } from '@/features/farms/types/index.ts'
 import { ApiError } from '@/shared/lib/api.ts'
@@ -179,7 +179,7 @@ type EstadoBusca =
   | { fase: 'parada' }
   | { fase: 'buscando' }
   | { fase: 'resultados'; itens: ResultadoEndereco[] }
-  | { fase: 'falhou' }
+  | { fase: 'falhou'; motivo: string }
 
 function BuscaEndereco({ onEscolher, desabilitado }: { onEscolher: (destino: Destino) => void; desabilitado: boolean }) {
   const [texto, setTexto] = useState('')
@@ -190,8 +190,11 @@ function BuscaEndereco({ onEscolher, desabilitado }: { onEscolher: (destino: Des
     setBusca({ fase: 'buscando' })
     try {
       setBusca({ fase: 'resultados', itens: await buscarEndereco(texto, AbortSignal.timeout(8000)) })
-    } catch {
-      setBusca({ fase: 'falhou' })
+    } catch (error) {
+      setBusca({
+        fase: 'falhou',
+        motivo: error instanceof MapTilerError ? error.message : 'Sem resposta do serviço de busca.',
+      })
     }
   }
 
@@ -225,7 +228,7 @@ function BuscaEndereco({ onEscolher, desabilitado }: { onEscolher: (destino: Des
         </Button>
       </div>
       {busca.fase === 'falhou' && (
-        <p className="mt-2 text-base text-perigo">A busca falhou. Tente de novo ou navegue pelo mapa.</p>
+        <p className="mt-2 text-base text-perigo">A busca falhou. {busca.motivo} Enquanto isso, navegue pelo mapa.</p>
       )}
       {busca.fase === 'resultados' && busca.itens.length === 0 && (
         <p className="mt-2 text-base text-nevoa">Nenhum endereço encontrado. Navegue pelo mapa até a fazenda.</p>
