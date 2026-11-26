@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Navigate, Outlet } from 'react-router'
 import { useSyncExternalStore } from 'react'
 import { ouvirSessao, sessaoAtual } from '@/features/auth/session.ts'
+import { WeatherAlertPopup } from '@/features/weather/components/weather-alert-popup.tsx'
 import { Header } from '@/shared/components/layout/header.tsx'
 import { Sidebar } from '@/shared/components/layout/sidebar.tsx'
 
@@ -21,6 +22,7 @@ export function AppShell() {
       <main id="conteudo" className="min-h-0 flex-1">
         <Outlet />
       </main>
+      <WeatherAlertPopup />
     </div>
   )
 }
